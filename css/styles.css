@@ -1,0 +1,240 @@
+html, body {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+  margin: 0;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  margin: 25px;
+}
+
+.row {
+  flex: 1;
+  display: flex;
+}
+
+.cell {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  image-rendering: pixelated;
+  background-size: contain;
+  background-repeat: no-repeat;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.cell:not(._vd):not(._tp) {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  transition: all cubic-bezier(0.4, 0.0, 0.2, 1) 80ms;
+}
+
+.cell:hover:not(:active):not(._vd):not(._tp):not(._dp) {
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+  z-index: 2;
+  margin: -2px -1px 0 -1px;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  filter: brightness(1.05);
+}
+
+.cell:active {
+  filter: brightness(0.95);
+}
+
+._st {
+  background-image: url('../img/startPanel.png');
+}
+
+._cp._bl {
+  background-image: url('../img/blueCheckpoint.png');
+}
+
+._cp._rd {
+  background-image: url('../img/redCheckpoint.png');
+}
+
+._cp._yl {
+  background-image: url('../img/yellowCheckpoint.png');
+}
+
+._cp._gr {
+  background-image: url('../img/greenCheckpoint.png');
+}
+
+._cm {
+  background-image: url('../img/commandPanel.png');
+}
+
+._bp {
+  background-image: url('../img/bonusPanel.png');
+}
+
+._sp {
+  background-image: url('../img/specialPanel.png');
+}
+
+._gb {
+  background-image: url('../img/gpBoosterPanel.png');
+}
+
+._dp {
+  background-image: url('../img/damagePanel.png');
+}
+
+@keyframes flickerAnimation {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+._tp._ht {
+  background-image: url('../img/horizontalTeleporter.png');
+  background-position: 50%;
+  opacity: 0.5;
+  animation: flickerAnimation 1s infinite;
+}
+
+._tp._vt {
+  background-image: url('../img/verticalTeleporter.png');
+}
+
+._cm.v01 {
+  background-image: url('../img/coloredCommandPanel/1.png'), url('../img/commandPanel.png');
+}
+
+._cm.v02 {
+  background-image: url('../img/coloredCommandPanel/2.png'), url('../img/commandPanel.png');
+}
+
+._cm.v03 {
+  background-image: url('../img/coloredCommandPanel/3.png'), url('../img/commandPanel.png');
+}
+
+._cm.v04 {
+  background-image: url('../img/coloredCommandPanel/4.png'), url('../img/commandPanel.png');
+}
+
+._cm.v05 {
+  background-image: url('../img/coloredCommandPanel/5.png'), url('../img/commandPanel.png');
+}
+
+._cm.v06 {
+  background-image: url('../img/coloredCommandPanel/6.png'), url('../img/commandPanel.png');
+}
+
+._cm.v07 {
+  background-image: url('../img/coloredCommandPanel/7.png'), url('../img/commandPanel.png');
+}
+
+._cm.v08 {
+  background-image: url('../img/coloredCommandPanel/8.png'), url('../img/commandPanel.png');
+}
+
+._cm.v09 {
+  background-image: url('../img/coloredCommandPanel/9.png'), url('../img/commandPanel.png');
+}
+
+._cm.v10 {
+  background-image: url('../img/coloredCommandPanel/10.png'), url('../img/commandPanel.png');
+}
+
+._cm.v11 {
+  background-image: url('../img/coloredCommandPanel/11.png'), url('../img/commandPanel.png');
+}
+
+._cm.v12 {
+  background-image: url('../img/coloredCommandPanel/12.png'), url('../img/commandPanel.png');
+}
+
+._cm.v13 {
+  background-image: url('../img/coloredCommandPanel/13.png'), url('../img/commandPanel.png');
+}
+
+._cm.v14 {
+  background-image: url('../img/coloredCommandPanel/14.png'), url('../img/commandPanel.png');
+}
+
+._cm.v15 {
+  background-image: url('../img/coloredCommandPanel/15.png'), url('../img/commandPanel.png');
+}
+
+._cm.v16 {
+  background-image: url('../img/coloredCommandPanel/16.png'), url('../img/commandPanel.png');
+}
+
+._bp.v01 {
+  background-image: url('../img/coloredCommandPanel/1.png'), url('../img/bonusPanel.png');
+}
+
+._bp.v02 {
+  background-image: url('../img/coloredCommandPanel/2.png'), url('../img/bonusPanel.png');
+}
+
+._bp.v03 {
+  background-image: url('../img/coloredCommandPanel/3.png'), url('../img/bonusPanel.png');
+}
+
+._bp.v04 {
+  background-image: url('../img/coloredCommandPanel/4.png'), url('../img/bonusPanel.png');
+}
+
+._bp.v05 {
+  background-image: url('../img/coloredCommandPanel/5.png'), url('../img/bonusPanel.png');
+}
+
+._bp.v06 {
+  background-image: url('../img/coloredCommandPanel/6.png'), url('../img/bonusPanel.png');
+}
+
+._bp.v07 {
+  background-image: url('../img/coloredCommandPanel/7.png'), url('../img/bonusPanel.png');
+}
+
+._bp.v08 {
+  background-image: url('../img/coloredCommandPanel/8.png'), url('../img/bonusPanel.png');
+}
+
+._bp.v09 {
+  background-image: url('../img/coloredCommandPanel/9.png'), url('../img/bonusPanel.png');
+}
+
+._bp.v10 {
+  background-image: url('../img/coloredCommandPanel/10.png'), url('../img/bonusPanel.png');
+}
+
+._bp.v11 {
+  background-image: url('../img/coloredCommandPanel/11.png'), url('../img/bonusPanel.png');
+}
+
+._bp.v12 {
+  background-image: url('../img/coloredCommandPanel/12.png'), url('../img/bonusPanel.png');
+}
+
+._bp.v13 {
+  background-image: url('../img/coloredCommandPanel/13.png'), url('../img/bonusPanel.png');
+}
+
+._bp.v14 {
+  background-image: url('../img/coloredCommandPanel/14.png'), url('../img/bonusPanel.png');
+}
+
+._bp.v15 {
+  background-image: url('../img/coloredCommandPanel/15.png'), url('../img/bonusPanel.png');
+}
+
+._bp.v16 {
+  background-image: url('../img/coloredCommandPanel/16.png'), url('../img/bonusPanel.png');
+}
