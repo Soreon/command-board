@@ -109,6 +109,29 @@ function exportGrid() {
   console.log(`Les données de la grille ont été exportées avec succès sous le nom ${exportName}`);
 }
 
+/* Nouveau format d'export en binaire
+
+  Les types de cases peuvent être représentés par 4 bits (0 - 15)
+  empty                 0b0000
+  blueCheckpoint        0b0001
+  greenCheckpoint       0b0010
+  redCheckpoint         0b0011
+  yellowCheckpoint      0b0100
+  dice                  0b0101
+  damagePanel           0b0110
+  horizontalTeleporter  0b0111
+  verticalTeleporter    0b1000
+  bonusPanel            0b1001
+  commandPanel          0b1010
+  gpBoosterPanel        0b1011
+  specialPanel          0b1100
+  startPanel            0b1101
+
+  5 premiers bits : taille de la grille (0 - 31)
+  S'en suit une suite de case de taille (taille de la grille)²
+
+*/
+
 function resetGrid() {
   enableAllOptions();
   document.querySelectorAll('.grid-item').forEach((gridItem) => {
