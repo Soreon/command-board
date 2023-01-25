@@ -98,7 +98,7 @@ function exportGrid() {
   for (const item of gridItems) {
     gridData.cells.push(item.className.replace("grid-item", ""));
   }
-  localStorage.setItem(exportName, JSON.stringify(gridData));
+  localStorage.setItem(exportName, LZString.compressToBase64(JSON.stringify(gridData)));
 
   const exportList = document.querySelector("#export-list");
   const option = document.createElement("option");
@@ -136,7 +136,7 @@ function importGrid() {
   const exportName = exportList.value;
   if (!exportName) return; // si l'utilisateur annule la saisie
 
-  const gridDataString = localStorage.getItem(exportName);
+  const gridDataString = LZString.decompressFromBase64(localStorage.getItem(exportName));
   if (!gridDataString) {
     console.log(`Aucun export n'a été trouvé sous le nom ${exportName}`);
     return;
