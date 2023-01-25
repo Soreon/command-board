@@ -1,0 +1,54 @@
+<html>
+  <head>
+    <title>Mon jeu</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div class="interface-container">
+      <div>
+        <select id="image-selector">
+          <option selected value="empty">Empty</option>
+          <optgroup label="Checkpoint">
+            <option value="blueCheckpoint">Blue Checkpoint</option>
+            <option value="greenCheckpoint">Green Checkpoint</option>
+            <option value="redCheckpoint">Red Checkpoint</option>
+            <option value="yellowCheckpoint">Yellow Checkpoint</option>
+          </optgroup>
+          <optgroup label="Dice Path">
+            <option value="dice">Dice</option>
+            <option value="damagePanel">Damage Panel</option>
+          </optgroup>
+          <optgroup label="Teleporter">
+            <option value="horizontalTeleporter">Horizontal Teleporter</option>
+            <option value="verticalTeleporter">Vertical Teleporter</option>
+          </optgroup>
+          <option value="bonusPanel">Bonus Panel</option>
+          <option value="commandPanel">Command Panel</option>
+          <option value="gpBoosterPanel">GP Booster Panel</option>
+          <option value="specialPanel">Special Panel</option>
+          <option value="startPanel">Start Panel</option>
+        </select>
+      </div>
+      <div><div id="image-preview"></div></div>
+      <div><label for="grid-size-input">Grid size:</label>
+      <input id="grid-size-input" type="number" min="1" max="100"></div>
+      <div><button id="export-button">Exporter</button></div>
+      <div><button id="reset-cell">Reset</button></div>
+      <div><select id="export-list"></select></div>
+      <div><button id="import-button">Import</button><button id="delete-export-button">Supprimer</button></div>
+      <div class="move-buttons">
+        <span></span>
+        <button id="up-button">▲</button>
+        <span></span>
+        <button id="left-button">◄</button>
+        <span></span>
+        <button id="down-button">▼</button>
+        <span></span>
+        <button id="right-button">►</button>
+        <span></span>
+      </div>
+    </div>
+    <div class="grid-container"></div>
+  </body>
+  <script src="game.js"></script>
+</html>
