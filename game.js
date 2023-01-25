@@ -215,7 +215,19 @@ function shiftRight() {
   gridContainer.prepend(item);
 }
 
+function onGridSizeChange(event) {
+  const gridSize = event.target.value;
+  gridSizeInCell = gridSize;
+  document.documentElement.style.setProperty('--grid-size-in-cell', gridSize);
+  const gridContainer = document.querySelector('.grid-container');
+  gridContainer.innerHTML = '';
+  generateGrid();
+  enableAllOptions()
+}
 
+
+gridSizeInput.value = gridSizeInCell;
+gridSizeInput.addEventListener('change', onGridSizeChange);
 exportButton.addEventListener('click', exportGrid);
 resetButton.addEventListener('click', resetGrid);
 importButton.addEventListener("click", importGrid);
@@ -224,17 +236,9 @@ upButton.addEventListener("click", shiftUp);
 downButton.addEventListener("click", shiftDown);
 leftButton.addEventListener("click", shiftLeft);
 rightButton.addEventListener("click", shiftRight);
+imageSelector.addEventListener("change", onImageSelect);
 
 
-gridSizeInput.value = gridSizeInCell;
-gridSizeInput.addEventListener('change', (event) => {
-  const gridSize = event.target.value;
-  gridSizeInCell = gridSize;
-  document.documentElement.style.setProperty('--grid-size-in-cell', gridSize);
-  const gridContainer = document.querySelector('.grid-container');
-  gridContainer.innerHTML = '';
-  generateGrid();
-});
 
 window.addEventListener("beforeunload", (e) => {
   if (hasUnsavedData) {
@@ -243,8 +247,6 @@ window.addEventListener("beforeunload", (e) => {
     return dialogText;
   }
 });
-
-imageSelector.addEventListener("change", onImageSelect);
 
 generateGrid();
 refreshExportList()
