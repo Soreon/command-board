@@ -145,6 +145,7 @@ function importGrid() {
 
   // remplir la grille avec les données importées
   gridSizeInCell = gridData.size;
+  gridSizeInput.value = gridSizeInCell;
   document.documentElement.style.setProperty('--grid-size-in-cell', gridSizeInCell);
   gridContainer.innerHTML = "";
   generateGrid();
