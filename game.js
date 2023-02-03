@@ -15,12 +15,20 @@ const rightButton = document.querySelector("#right-button");
 
 let hasUnsavedData = false;
 let usedCheckpoints = new Set();
+let isStartPanelUsed = false;
 
 function refreshExportList() {
   exportList.innerHTML = "";
+
+  let exportOption = document.createElement("option");
+  exportOption.value = 'default';
+  exportOption.selected = true;
+  exportOption.innerHTML = '';
+  exportList.appendChild(exportOption);
+
   for (let i = 0; i < localStorage.length; i++) {
-    const exportName = localStorage.key(i);
-    const exportOption = document.createElement("option");
+    exportName = localStorage.key(i);
+    exportOption = document.createElement("option");
     exportOption.value = exportName;
     exportOption.innerHTML = exportName;
     exportList.appendChild(exportOption);
@@ -59,6 +67,8 @@ function onCellClick(event) {
     enableCheckpointOption("redCheckpoint");
   } else if (event.target.classList.contains("yellowCheckpoint")) {
     enableCheckpointOption("yellowCheckpoint");
+  } else if (event.target.classList.contains("startPanel")) {
+    isStartPanelUsed = false;
   }
 
   event.target.className = 'grid-item';
@@ -68,6 +78,10 @@ function onCellClick(event) {
     if (selectedImage.includes("Checkpoint")) {
       usedCheckpoints.add(selectedImage);
       imageSelector.querySelectorAll(`[value='${selectedImage}']`)[0].disabled = true;
+      imageSelector.value = 'empty';
+      onImageSelect({ target: imageSelector });
+    } else if (selectedImage === 'startPanel') {
+      imageSelector.querySelectorAll("[value='startPanel']")[0].disabled = true;
       imageSelector.value = 'empty';
       onImageSelect({ target: imageSelector });
     }
@@ -85,20 +99,34 @@ function generateGrid() {
   }
 }
 
+function getGridStr() {
+  let gridStr = "";
+
+  document.querySelectorAll('.grid-item').forEach((cell, index) => {
+    if (cell.className.includes('blueCheckpoint')) gridStr += "B";
+    else if (cell.className.includes('greenCheckpoint')) gridStr += "G";
+    else if (cell.className.includes('redCheckpoint')) gridStr += "R";
+    else if (cell.className.includes('yellowCheckpoint')) gridStr += "Y";
+    else if (cell.className.includes('dice')) gridStr += "D";
+    else if (cell.className.includes('damagePanel')) gridStr += "P";
+    else if (cell.className.includes('horizontalTeleporter')) gridStr += "H";
+    else if (cell.className.includes('verticalTeleporter')) gridStr += "V";
+    else if (cell.className.includes('bonusPanel')) gridStr += "O";
+    else if (cell.className.includes('commandPanel')) gridStr += "C";
+    else if (cell.className.includes('gpBoosterPanel')) gridStr += "M";
+    else if (cell.className.includes('specialPanel')) gridStr += "S";
+    else if (cell.className.includes('startPanel')) gridStr += "A";
+    else gridStr += " ";
+  });
+
+  return gridStr;
+}
+
 function exportGrid() {
   const exportName = prompt("Entrez un nom pour l'export : ");
-  if (!exportName) return; // si l'utilisateur annule la saisie
+  if (!exportName) return;
 
-  const gridData = {
-    size: gridSizeInCell,
-    cells: []
-  };
-
-  const gridItems = document.querySelectorAll('.grid-item');
-  for (const item of gridItems) {
-    gridData.cells.push(item.className.replace("grid-item", ""));
-  }
-  localStorage.setItem(exportName, LZString.compressToBase64(JSON.stringify(gridData)));
+  localStorage.setItem(exportName, getGridStr());
 
   const exportList = document.querySelector("#export-list");
   const option = document.createElement("option");
@@ -128,44 +156,73 @@ function resetGrid() {
       usedCheckpoints.delete('yellowCheckpoint');
       imageSelector.querySelectorAll("[value='yellowCheckpoint']")[0].disabled = false;
     }
+    if (gridItem.classList.contains('startCell')) {
+      isStartPanelUsed = false;
+      imageSelector.querySelectorAll("[value='startPanel']")[0].disabled = false;
+    }
     gridItem.className = 'grid-item';
   });
+  exportList.value = 'default';
 }
 
 function importGrid() {
   const exportName = exportList.value;
   if (!exportName) return; // si l'utilisateur annule la saisie
 
-  const gridDataString = LZString.decompressFromBase64(localStorage.getItem(exportName));
-  if (!gridDataString) {
+  const gridData = localStorage.getItem(exportName);
+  if (!gridData) {
     console.log(`Aucun export n'a été trouvé sous le nom ${exportName}`);
     return;
   }
-  const gridData = JSON.parse(gridDataString);
 
   // remplir la grille avec les données importées
-  gridSizeInCell = gridData.size;
+  gridSizeInCell = Math.sqrt(gridData.length);
   gridSizeInput.value = gridSizeInCell;
   document.documentElement.style.setProperty('--grid-size-in-cell', gridSizeInCell);
   gridContainer.innerHTML = "";
   generateGrid();
   const gridItems = document.querySelectorAll('.grid-item');
   for (let i = 0; i < gridItems.length; i++) {
-    gridItems[i].className = "grid-item " + gridData.cells[i];
+    gridItems[i].className = "grid-item";
+
+    switch(gridData[i]) {
+      case "B": gridItems[i].classList.add('blueCheckpoint'); break;
+      case "G": gridItems[i].classList.add('greenCheckpoint'); break;
+      case "R": gridItems[i].classList.add('redCheckpoint'); break;
+      case "Y": gridItems[i].classList.add('yellowCheckpoint'); break;
+      case "D": gridItems[i].classList.add('dice'); break;
+      case "P": gridItems[i].classList.add('damagePanel'); break;
+      case "H": gridItems[i].classList.add('horizontalTeleporter'); break;
+      case "V": gridItems[i].classList.add('verticalTeleporter'); break;
+      case "O": gridItems[i].classList.add('bonusPanel'); break;
+      case "C": gridItems[i].classList.add('commandPanel'); break;
+      case "M": gridItems[i].classList.add('gpBoosterPanel'); break;
+      case "S": gridItems[i].classList.add('specialPanel'); break;
+      case "A": gridItems[i].classList.add('startPanel'); break;
+    }       
   }
 
-  const importedCheckpoints = gridData.cells.filter(cell => cell.includes("Checkpoint"));
-  const imageSelector = document.querySelector("#image-selector");
-  const checkpointOptions = Array.from(imageSelector.querySelectorAll("option")).filter(option => option.value.includes("Checkpoint"));
+  if (gridData.includes('B')) usedCheckpoints.add('blueCheckpoint');
+  if (gridData.includes('G')) usedCheckpoints.add('greenCheckpoint');
+  if (gridData.includes('R')) usedCheckpoints.add('redCheckpoint');
+  if (gridData.includes('Y')) usedCheckpoints.add('yellowCheckpoint');
+  if (gridData.includes('A')) isStartPanelUsed = true;
 
+  const checkpointOptions = Array.from(imageSelector.querySelectorAll("option")).filter(option => option.value.includes("Checkpoint"));
   enableAllOptions();
 
-  for (const checkpoint of importedCheckpoints) {
+  for (const checkpoint of usedCheckpoints) {
     const option = checkpointOptions.find(opt => opt.value === checkpoint.trim());
     option.disabled = true;
   }
 
-  console.log(`Les données de la grille ont été importées avec succès depuis ${ exportName }`);
+  if (isStartPanelUsed) {
+    imageSelector.querySelector("[value='startPanel']").disabled = true;
+  }
+
+  exportList.value = 'default';
+
+  console.log(`Les données de la grille ont été importées avec succès depuis ${exportName}`);
 }
 
 function deleteExport() {
@@ -173,6 +230,7 @@ function deleteExport() {
   const exportName = exportList.value;
   localStorage.removeItem(exportName);
   exportList.removeChild(exportList.querySelector(`[value='${exportName}']`));
+  exportList.value = 'default';
 }
 
 function shiftUp() {
@@ -225,6 +283,13 @@ function onGridSizeChange(event) {
   enableAllOptions()
 }
 
+function onWindowQuit(event) {
+  if (hasUnsavedData) {
+    event.returnValue = "Vous avez des données non enregistrées sur cette page. Êtes-vous sûr de vouloir quitter?";
+  }
+}
+
+
 
 gridSizeInput.value = gridSizeInCell;
 gridSizeInput.addEventListener('change', onGridSizeChange);
@@ -237,16 +302,7 @@ downButton.addEventListener("click", shiftDown);
 leftButton.addEventListener("click", shiftLeft);
 rightButton.addEventListener("click", shiftRight);
 imageSelector.addEventListener("change", onImageSelect);
-
-
-
-window.addEventListener("beforeunload", (e) => {
-  if (hasUnsavedData) {
-    const dialogText = "Vous avez des données non enregistrées sur cette page. Êtes-vous sûr de vouloir quitter?";
-    e.returnValue = dialogText;
-    return dialogText;
-  }
-});
+window.addEventListener("beforeunload", onWindowQuit);
 
 generateGrid();
 refreshExportList()
