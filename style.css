@@ -23,7 +23,7 @@ select {
     display: grid;
     grid-template-columns: repeat(var(--grid-size-in-cell), 1fr);
     grid-template-rows: repeat(var(--grid-size-in-cell), 1fr);
-    grid-gap: var(--grid-cell-gap);
+    gap: var(--grid-cell-gap);
     width: fit-content;
     height: fit-content;
     margin-left: 10px;
