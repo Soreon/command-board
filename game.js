@@ -234,6 +234,7 @@ function importGrid() {
 function deleteExport() {
   const exportList = document.querySelector("#export-list");
   const exportName = exportList.value;
+  if (exportName === "default") return;
   localStorage.removeItem(exportName);
   exportList.removeChild(exportList.querySelector(`[value='${exportName}']`));
   exportList.value = 'default';
