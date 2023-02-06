@@ -16,6 +16,7 @@ const rightButton = document.querySelector("#right-button");
 let hasUnsavedData = false;
 let usedCheckpoints = new Set();
 let isStartPanelUsed = false;
+let mouseDownTarget = null;
 
 function refreshExportList() {
   exportList.innerHTML = "";
@@ -93,9 +94,14 @@ function generateGrid() {
   for (let i = 0; i < gridSizeInCell ** 2; i++) {
     const gridItem = document.createElement('div');
     gridItem.classList.add('grid-item');
+    gridItem.draggable = false;
     gridContainer.appendChild(gridItem);
     gridItem.addEventListener('click', onCellClick);
-    gridItem.addEventListener('dragover', onCellClick);
+    gridItem.addEventListener('mousemove', (event) => {
+      if (!mouseDownTarget) return;
+      if (mouseDownTarget === event.target) return;
+      onCellClick(event);
+    });
   }
 }
 
@@ -289,6 +295,21 @@ function onWindowQuit(event) {
   }
 }
 
+function onMouseDown(event) {
+  mouseDownTarget = event.target;
+}
+
+function onMouseUp(event) {
+  mouseDownTarget = null;
+}
+
+function onMouseLeave(event) {
+  mouseDownTarget = null;
+}
+
+function onDrag(event) {
+  event.preventDefault();
+}
 
 
 gridSizeInput.value = gridSizeInCell;
@@ -303,6 +324,11 @@ leftButton.addEventListener("click", shiftLeft);
 rightButton.addEventListener("click", shiftRight);
 imageSelector.addEventListener("change", onImageSelect);
 window.addEventListener("beforeunload", onWindowQuit);
+document.addEventListener("mousedown", onMouseDown);
+document.addEventListener("mouseup", onMouseUp);
+document.addEventListener("mouseleave", onMouseLeave);
+document.addEventListener("dragstart", onDrag);
+document.addEventListener("dragover", onDrag);
 
 generateGrid();
 refreshExportList()
