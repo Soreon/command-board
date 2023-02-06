@@ -214,6 +214,20 @@ function checkGridValidity() {
     return false;
   }
 
+  // Vérifier que les "dice" sont entourés d'au moins 2 case "damagePanel"
+
+  // Vérifier qu'il n'existe pas de "damagePanel" isolé
+
+  // Vérifier que les chemins de "damagePanel" contiennent un "dice"
+
+  // Vérifier que toutes les cases non vides sont accessibles
+
+  // Vérifier que les "checkpoint" ne sont pas trop proches les uns des autres
+
+  // Vérifier qu'il n'y ait pas de cul-de-sac
+
+  // Vérifier que les cases autres que "teleporter" ne soient pas entourées de 4 cases 
+
   alert('La grille est valide !');
   return true;
 }
