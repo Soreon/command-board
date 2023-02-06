@@ -1,162 +1,167 @@
 :root {
-    --grid-size-in-pixel: 800px;
-    --grid-size-in-cell: 10;
-    --grid-cell-gap: 5px;
+  --grid-size-in-pixel: 800px;
+  --grid-size-in-cell: 10;
+  --grid-cell-gap: 5px;
 
-    --grid-size-without-gap: calc(var(--grid-size-in-pixel) - (var(--grid-cell-gap) * (var(--grid-size-in-cell) - 1)));
+  --grid-size-without-gap: calc(var(--grid-size-in-pixel) - (var(--grid-cell-gap) * (var(--grid-size-in-cell) - 1)));
 }
 
 body {
-    display: grid;
-    grid-template-columns: 20% 80%;
-    /* première colonne pour l'interface, deuxième colonne pour la grille */
-    grid-template-rows: 100%;
-    width: fit-content;
-    height: fit-content;
+  display: grid;
+  grid-template-columns: 20% 80%;
+  /* première colonne pour l'interface, deuxième colonne pour la grille */
+  grid-template-rows: 100%;
+  width: fit-content;
+  height: fit-content;
+  font-size: 14px;
 }
 
 select {
-    width: 100%;
+  width: 100%;
 }
 
 .grid-container {
-    display: grid;
-    grid-template-columns: repeat(var(--grid-size-in-cell), 1fr);
-    grid-template-rows: repeat(var(--grid-size-in-cell), 1fr);
-    gap: var(--grid-cell-gap);
-    width: fit-content;
-    height: fit-content;
-    margin-left: 10px;
+  display: grid;
+  grid-template-columns: repeat(var(--grid-size-in-cell), 1fr);
+  grid-template-rows: repeat(var(--grid-size-in-cell), 1fr);
+  gap: var(--grid-cell-gap);
+  width: fit-content;
+  height: fit-content;
+  margin-left: 10px;
 }
 
 .grid-item {
-    width: calc(var(--grid-size-without-gap) / var(--grid-size-in-cell));
-    height: calc(var(--grid-size-without-gap) / var(--grid-size-in-cell));
-    text-align: center;
-    background-color: transparent;
-    border: 1px solid #0000000A;
-    image-rendering: pixelated;
-    background-size: cover;
-    background-repeat: no-repeat;
+  width: calc(var(--grid-size-without-gap) / var(--grid-size-in-cell));
+  height: calc(var(--grid-size-without-gap) / var(--grid-size-in-cell));
+  text-align: center;
+  background-color: transparent;
+  border: 1px solid #0000000A;
+  image-rendering: pixelated;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 .blueCheckpoint {
-    background-image: url("images/blueCheckpoint.png");
+  background-image: url("images/blueCheckpoint.png");
 }
 
 .bonusPanel {
-    background-image: url("images/bonusPanel.png");
+  background-image: url("images/bonusPanel.png");
 }
 
 .commandPanel {
-    background-image: url("images/commandPanel.png");
+  background-image: url("images/commandPanel.png");
 }
 
 .damagePanel {
-    background-image: url("images/damagePanel.png");
+  background-image: url("images/damagePanel.png");
 }
 
 .dice {
-    background-image: url("images/dice.png");
+  background-image: url("images/dice.png");
 }
 
 .gpBoosterPanel {
-    background-image: url("images/gpBoosterPanel.png");
+  background-image: url("images/gpBoosterPanel.png");
 }
 
 .greenCheckpoint {
-    background-image: url("images/greenCheckpoint.png");
+  background-image: url("images/greenCheckpoint.png");
 }
 
 .redCheckpoint {
-    background-image: url("images/redCheckpoint.png");
+  background-image: url("images/redCheckpoint.png");
 }
 
 .specialPanel {
-    background-image: url("images/specialPanel.png");
+  background-image: url("images/specialPanel.png");
 }
 
 .startPanel {
-    background-image: url("images/startPanel.png");
+  background-image: url("images/startPanel.png");
 }
 
 .yellowCheckpoint {
-    background-image: url("images/yellowCheckpoint.png");
+  background-image: url("images/yellowCheckpoint.png");
 }
 
 .horizontalTeleporter {
-    background-image: url("images/horizontalTeleporter.png");
-    background-size: contain !important;
-    background-position-Y: center;
+  background-image: url("images/horizontalTeleporter.png");
+  background-size: contain !important;
+  background-position-Y: center;
 }
 
 .verticalTeleporter {
-    background-image: url("images/verticalTeleporter.png");
-    background-size: contain !important;
-    background-position-x: center;
+  background-image: url("images/verticalTeleporter.png");
+  background-size: contain !important;
+  background-position-x: center;
 }
 
 .interface-container>div {
-    margin-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.interface-container>* {
+  user-select: none;
 }
 
 #image-preview {
-    width: 50px;
-    height: 50px;
-    background-size: cover;
-    image-rendering: pixelated;
-    background-size: cover;
-    background-repeat: no-repeat;
-    border: 1px solid #0000000A;
+  width: 50px;
+  height: 50px;
+  background-size: cover;
+  image-rendering: pixelated;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border: 1px solid #0000000A;
 }
 
 #export-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 #export-list option {
-    padding: 5px;
-    border: 1px solid #ccc;
+  padding: 5px;
+  border: 1px solid #ccc;
 }
 
 #export-list option:hover {
-    background-color: #eee;
+  background-color: #eee;
 }
 
 #export-list option:active, #export-list option:focus {
-    background-color: #ddd;
+  background-color: #ddd;
 }
 
 .move-buttons {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-    width: fit-content;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: fit-content;
 }
 
 #up-button {
-    grid-column: 2;
-    grid-row: 1;
+  grid-column: 2;
+  grid-row: 1;
 }
 
 #left-button {
-    grid-column: 1;
-    grid-row: 2;
+  grid-column: 1;
+  grid-row: 2;
 }
 
 #down-button {
-    grid-column: 2;
-    grid-row: 3;
+  grid-column: 2;
+  grid-row: 3;
 }
 
 #right-button {
-    grid-column: 3;
-    grid-row: 2;
+  grid-column: 3;
+  grid-row: 2;
 }
 
 .numpad span {
-    grid-column: 2;
-    grid-row: 2;
+  grid-column: 2;
+  grid-row: 2;
 }

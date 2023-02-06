@@ -1,7 +1,6 @@
 [{"Secret":"  PPPPCPPP       D   V  P     PDY   O  P     P  GCCS  P     P  C  V  P     P  C  V  D CCR CHOSHHMHOCCC C P     V  O  CC P     O  V  C  PPPPPDCOHSHOC        C  V  C       CC  O  CC      C CCCCC OC     BCC   CO C            CCA"}
 ,{"Royal":"                                                  BHHHHS   YDPOPD    C  CC P P     C OO  PSP     CCC    V  DPP OC     V OC P CGCCMCCACC  PRC                                                        "}
 ,{"Spaceship":"                             CCC CCCCR    CC CSC   MHHSCC   V   CC   VC  POG  C    VBDPP DPPA    VC  PCP  C    VC   V   CC   VCS MCC   CHHCC CCC CSCCY                                              "}
-,{"Test":"PPPPPCPPP DV P PDY O P P GCCS P P C V P P C V DCR CHOSHHMHOCCC C P V O CC P O V C PPPPPDCOHSHOC C V C CC O CC C CCCCC OC BCC CO C CCA           "}
 ,{"Honeypot":"PPPDCCSB  P      P  PYCCO PP   C  CDP   CC    PC  S      C  CHHHHHHC  C      S  GM    CR   CCCACC   "}
 ,{"Skull":"   OCPPDPPC    GC   V  CS  CC    V   CC C     V    M S     CCCC C V CCC C  O C V Y CHA  O C V OCC CCCC R V        V C M        V C PP  OHB  CCO  P  C C  C    PPPDSCCOC  "}
 ,{"Toon":"     COC         CY CC        C   C       CCPPDCS      C     C     CCDPPPPGC    S       C    CCCCACCCC    D V   V S    P V   V C    PSB   RCC      C   C        CCMCC    "}
