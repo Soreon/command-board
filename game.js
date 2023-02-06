@@ -18,6 +18,8 @@ let hasUnsavedData = false;
 let usedCheckpoints = new Set();
 let isStartPanelUsed = false;
 let mouseDownTarget = null;
+let history = [];
+let historyStateIndex = 0;
 
 function refreshExportList() {
   exportList.innerHTML = "";
@@ -58,6 +60,25 @@ function enableAllOptions() {
   }
 }
 
+// fonction permettant de visualiser l'état de l'historique
+// console.log([...history.map((s, i) => i === historyStateIndex ? `>|${s}|` : ` |${s}|`)].join('\n'))
+
+function addHistoryState() {
+  const gridStr = getGridStr();
+  if (history[history.length - 1] === gridStr) return;
+
+  if (history.length > 0 && historyStateIndex !== history.length - 1) {
+    history.splice(historyStateIndex + 1, history.length - historyStateIndex);
+  }
+  history.push(gridStr);
+  historyStateIndex = history.length - 1;
+}
+
+function resetHistory() {
+  historyStateIndex = 0;
+  historyStates = [];
+}
+
 function onCellClick(event) {
   if (event.which !== 1) return;
   const selectedImage = imageSelector.value;
@@ -90,6 +111,7 @@ function onCellClick(event) {
     }
   }
   hasUnsavedData = true;
+  addHistoryState();
 }
 
 function generateGrid() {
@@ -145,7 +167,7 @@ function exportGrid() {
   console.log(`Les données de la grille ont été exportées avec succès sous le nom ${exportName}`);
 }
 
-function resetGrid() {
+function resetImageSelector() {
   enableAllOptions();
   document.querySelectorAll('.grid-item').forEach((gridItem) => {
     if (gridItem.classList.contains('blueCheckpoint')) {
@@ -173,6 +195,12 @@ function resetGrid() {
   exportList.value = 'default';
 }
 
+function resetGrid() {
+  resetImageSelector();
+  resetHistory();
+  addHistoryState()
+}
+
 function checkGridValidity() {
   const gridContent = getGridStr();
 
@@ -190,18 +218,9 @@ function checkGridValidity() {
   return true;
 }
 
-function importGrid() {
-  const exportName = exportList.value;
-  if (!exportName) return; // si l'utilisateur annule la saisie
-
-  const gridData = localStorage.getItem(exportName);
-  if (!gridData) {
-    console.log(`Aucun export n'a été trouvé sous le nom ${exportName}`);
-    return;
-  }
-
-  // remplir la grille avec les données importées
-  gridSizeInCell = Math.sqrt(gridData.length);
+function loadGridByString(gridStr) {
+  // remplir la grille avec les données 
+  gridSizeInCell = Math.sqrt(gridStr.length);
   gridSizeInput.value = gridSizeInCell;
   document.documentElement.style.setProperty('--grid-size-in-cell', gridSizeInCell);
   gridContainer.innerHTML = "";
@@ -210,7 +229,7 @@ function importGrid() {
   for (let i = 0; i < gridItems.length; i++) {
     gridItems[i].className = "grid-item";
 
-    switch(gridData[i]) {
+    switch(gridStr[i]) {
       case "B": gridItems[i].classList.add('blueCheckpoint'); break;
       case "G": gridItems[i].classList.add('greenCheckpoint'); break;
       case "R": gridItems[i].classList.add('redCheckpoint'); break;
@@ -227,11 +246,11 @@ function importGrid() {
     }       
   }
 
-  if (gridData.includes('B')) usedCheckpoints.add('blueCheckpoint');
-  if (gridData.includes('G')) usedCheckpoints.add('greenCheckpoint');
-  if (gridData.includes('R')) usedCheckpoints.add('redCheckpoint');
-  if (gridData.includes('Y')) usedCheckpoints.add('yellowCheckpoint');
-  if (gridData.includes('A')) isStartPanelUsed = true;
+  if (gridStr.includes('B')) usedCheckpoints.add('blueCheckpoint');
+  if (gridStr.includes('G')) usedCheckpoints.add('greenCheckpoint');
+  if (gridStr.includes('R')) usedCheckpoints.add('redCheckpoint');
+  if (gridStr.includes('Y')) usedCheckpoints.add('yellowCheckpoint');
+  if (gridStr.includes('A')) isStartPanelUsed = true;
 
   const checkpointOptions = Array.from(imageSelector.querySelectorAll("option")).filter(option => option.value.includes("Checkpoint"));
   enableAllOptions();
@@ -246,6 +265,19 @@ function importGrid() {
   }
 
   exportList.value = 'default';
+}
+
+function importGrid() {
+  const exportName = exportList.value;
+  if (!exportName) return; // si l'utilisateur annule la saisie
+
+  const gridStr = localStorage.getItem(exportName);
+  if (!gridStr) {
+    console.log(`Aucun export n'a été trouvé sous le nom ${exportName}`);
+    return;
+  }
+
+  loadGridByString(gridStr);
 
   console.log(`Les données de la grille ont été importées avec succès depuis ${exportName}`);
 }
@@ -331,6 +363,26 @@ function onDrag(event) {
   event.preventDefault();
 }
 
+function onPreviousHistoryState() {
+  if (historyStateIndex === 0) return;
+  historyStateIndex--;
+  if (typeof history[historyStateIndex] === 'undefined') return;
+  resetImageSelector();
+  loadGridByString(history[historyStateIndex]);
+}
+
+function onNextHistoryState() {
+  if (historyStateIndex === history.length - 1) return;
+  historyStateIndex++;
+  if (typeof history[historyStateIndex] === 'undefined') return;
+  resetImageSelector();
+  loadGridByString(history[historyStateIndex]);
+}
+
+function onKeyDown(event) {
+  if (event.ctrlKey && event.key === 'z') onPreviousHistoryState();
+  if (event.ctrlKey && event.key === 'y') onNextHistoryState();
+}
 
 gridSizeInput.value = gridSizeInCell;
 gridSizeInput.addEventListener('change', onGridSizeChange);
@@ -350,6 +402,8 @@ document.addEventListener("mouseup", onMouseUp);
 document.addEventListener("mouseleave", onMouseLeave);
 document.addEventListener("dragstart", onDrag);
 document.addEventListener("dragover", onDrag);
+document.addEventListener('keydown', onKeyDown);
 
 generateGrid();
-refreshExportList()
+refreshExportList();
+addHistoryState();
