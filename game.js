@@ -58,6 +58,7 @@ function enableAllOptions() {
 }
 
 function onCellClick(event) {
+  if (event.which !== 1) return;
   const selectedImage = imageSelector.value;
 
   if (event.target.classList.contains("blueCheckpoint")) {
