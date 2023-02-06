@@ -2,6 +2,7 @@ let gridSizeInCell = +getComputedStyle(document.documentElement).getPropertyValu
 const gridContainer = document.querySelector('.grid-container');
 const gridSizeInput = document.querySelector('#grid-size-input');
 const resetButton = document.querySelector('#reset-cell');
+const checkValidity = document.querySelector('#check-validity');
 const imageSelector = document.querySelector('#image-selector');
 const imagePreview = document.querySelector("#image-preview");
 const exportButton = document.querySelector('#export-button');
@@ -172,6 +173,23 @@ function resetGrid() {
   exportList.value = 'default';
 }
 
+function checkGridValidity() {
+  const gridContent = getGridStr();
+
+  if(!gridContent.includes("A")) {
+    alert("La grille doit contenir une case de départ");
+    return false;
+  }
+
+  if(!gridContent.includes("B") || !gridContent.includes("G") || !gridContent.includes("R") || !gridContent.includes("Y")) {
+    alert("La grille doit contenir tous les checkpoints");
+    return false;
+  }
+
+  alert('La grille est valide !');
+  return true;
+}
+
 function importGrid() {
   const exportName = exportList.value;
   if (!exportName) return; // si l'utilisateur annule la saisie
@@ -318,6 +336,7 @@ gridSizeInput.value = gridSizeInCell;
 gridSizeInput.addEventListener('change', onGridSizeChange);
 exportButton.addEventListener('click', exportGrid);
 resetButton.addEventListener('click', resetGrid);
+checkValidity.addEventListener('click', checkGridValidity);
 importButton.addEventListener("click", importGrid);
 deleteExportButton.addEventListener("click", deleteExport);
 upButton.addEventListener("click", shiftUp);
