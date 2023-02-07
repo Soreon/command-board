@@ -201,35 +201,73 @@ function resetGrid() {
   addHistoryState()
 }
 
+function getNeighbourCellsIndexes(cellIndex) {
+  const neighbours = [-1, -1, -1, -1];
+
+  if (cellIndex >= gridSizeInCell) {
+    neighbours[0] = cellIndex - gridSizeInCell;
+  }
+  if (cellIndex % gridSizeInCell !== gridSizeInCell - 1) {
+    neighbours[1] = cellIndex + 1;
+  }
+  if (cellIndex < gridSizeInCell ** 2 - gridSizeInCell) {
+    neighbours[2] = cellIndex + gridSizeInCell;
+  }
+  if (cellIndex % gridSizeInCell !== 0) {
+    neighbours[3] = cellIndex - 1;
+  }
+
+  return neighbours;
+}
+
+function getNeighbourCellsStates(cellIndex) {
+  const neighboursIndexes = getNeighbourCellsIndexes(cellIndex);
+  const neighbourCellsStates = [" ", " ", " ", " "];
+  const gritStr = getGridStr();
+  neighbourCellsStates[0] = gritStr[neighboursIndexes[0]] || " ";
+  neighbourCellsStates[1] = gritStr[neighboursIndexes[1]] || " ";
+  neighbourCellsStates[2] = gritStr[neighboursIndexes[2]] || " ";
+  neighbourCellsStates[3] = gritStr[neighboursIndexes[3]] || " ";
+
+  return neighbourCellsStates;
+}
+
+function checkIfCellIsIsolated(gridContent, cellIndex) {
+  const neighbours = getNeighbourCellsStates(cellIndex).join('').replaceAll(' ', '');
+  return gridContent[cellIndex] !== ' ' && neighbours.length < 2;
+}
+
+
 function checkGridValidity() {
   const gridContent = getGridStr();
+  const messages = [];
 
   if(!gridContent.includes("A")) {
-    alert("La grille doit contenir une case de départ");
-    return false;
+    messages.push("La grille doit contenir une case de départ");
   }
 
   if(!gridContent.includes("B") || !gridContent.includes("G") || !gridContent.includes("R") || !gridContent.includes("Y")) {
-    alert("La grille doit contenir tous les checkpoints");
-    return false;
+    messages.push("La grille doit contenir tous les checkpoints");
   }
 
-  // Vérifier que les "dice" sont entourés d'au moins 2 case "damagePanel"
+  for (let i = 0; i < gridSizeInCell ** 2; i++) {
+    if (checkIfCellIsIsolated(gridContent, i)) messages.push(`La case ${i} est isolée`);
+  }
 
-  // Vérifier qu'il n'existe pas de "damagePanel" isolé
+  // Vérifier que les "dice" sont entourés d'au moins 1 case "damagePanel"
 
-  // Vérifier que les chemins de "damagePanel" contiennent un "dice"
-
-  // Vérifier que toutes les cases non vides sont accessibles
+  // Vérifier que les chemins de "damagePanel" contiennent tous un "dice"
 
   // Vérifier que les "checkpoint" ne sont pas trop proches les uns des autres
 
-  // Vérifier qu'il n'y ait pas de cul-de-sac
+  // Vérifier qu'il n'y ait pas de cul-de-sac 
 
-  // Vérifier que les cases autres que "teleporter" ne soient pas entourées de 4 cases 
-
-  alert('La grille est valide !');
-  return true;
+  if (messages.length === 0) {
+    alert('La grille est valide !');
+  } else {
+    alert(messages.join('\n'));
+  }
+  return messages.length === 0;
 }
 
 function loadGridByString(gridStr) {
