@@ -1,38 +1,41 @@
+/* eslint-disable no-restricted-globals */
+/* eslint-disable no-alert */
+/* eslint-disable no-restricted-syntax */
 let gridSizeInCell = +getComputedStyle(document.documentElement).getPropertyValue('--grid-size-in-cell');
 const gridContainer = document.querySelector('.grid-container');
 const gridSizeInput = document.querySelector('#grid-size-input');
 const resetButton = document.querySelector('#reset-cell');
 const checkValidity = document.querySelector('#check-validity');
 const imageSelector = document.querySelector('#image-selector');
-const imagePreview = document.querySelector("#image-preview");
+const imagePreview = document.querySelector('#image-preview');
 const exportButton = document.querySelector('#export-button');
-const importButton = document.querySelector("#import-button");
+const importButton = document.querySelector('#import-button');
 const exportList = document.querySelector('#export-list');
-const deleteExportButton = document.querySelector("#delete-export-button");
-const upButton = document.querySelector("#up-button");
-const downButton = document.querySelector("#down-button");
-const leftButton = document.querySelector("#left-button");
-const rightButton = document.querySelector("#right-button");
+const deleteExportButton = document.querySelector('#delete-export-button');
+const upButton = document.querySelector('#up-button');
+const downButton = document.querySelector('#down-button');
+const leftButton = document.querySelector('#left-button');
+const rightButton = document.querySelector('#right-button');
 
 let hasUnsavedData = false;
-let usedCheckpoints = new Set();
+const usedCheckpoints = new Set();
 let isStartPanelUsed = false;
 let mouseDownTarget = null;
 let history = [];
 let historyStateIndex = 0;
 
 function refreshExportList() {
-  exportList.innerHTML = "";
+  exportList.innerHTML = '';
 
-  let exportOption = document.createElement("option");
+  let exportOption = document.createElement('option');
   exportOption.value = 'default';
   exportOption.selected = true;
   exportOption.innerHTML = '';
   exportList.appendChild(exportOption);
 
-  for (let i = 0; i < localStorage.length; i++) {
-    exportName = localStorage.key(i);
-    exportOption = document.createElement("option");
+  for (let i = 0; i < localStorage.length; i += 1) {
+    const exportName = localStorage.key(i);
+    exportOption = document.createElement('option');
     exportOption.value = exportName;
     exportOption.innerHTML = exportName;
     exportList.appendChild(exportOption);
@@ -45,7 +48,7 @@ function onImageSelect(event) {
 }
 
 function enableCheckpointOption(checkpoint) {
-  const options = imageSelector.querySelectorAll("option");
+  const options = imageSelector.querySelectorAll('option');
   for (const option of options) {
     if (option.value === checkpoint) {
       option.disabled = false;
@@ -54,10 +57,33 @@ function enableCheckpointOption(checkpoint) {
 }
 
 function enableAllOptions() {
-  const options = imageSelector.querySelectorAll("option");
+  const options = imageSelector.querySelectorAll('option');
   for (const option of options) {
     option.disabled = false;
   }
+}
+
+function getGridStr() {
+  let gridStr = '';
+
+  document.querySelectorAll('.grid-item').forEach((cell, index) => {
+    if (cell.className.includes('blueCheckpoint')) gridStr += 'B';
+    else if (cell.className.includes('greenCheckpoint')) gridStr += 'G';
+    else if (cell.className.includes('redCheckpoint')) gridStr += 'R';
+    else if (cell.className.includes('yellowCheckpoint')) gridStr += 'Y';
+    else if (cell.className.includes('dice')) gridStr += 'D';
+    else if (cell.className.includes('damagePanel')) gridStr += 'P';
+    else if (cell.className.includes('horizontalTeleporter')) gridStr += 'H';
+    else if (cell.className.includes('verticalTeleporter')) gridStr += 'V';
+    else if (cell.className.includes('bonusPanel')) gridStr += 'O';
+    else if (cell.className.includes('commandPanel')) gridStr += 'C';
+    else if (cell.className.includes('gpBoosterPanel')) gridStr += 'M';
+    else if (cell.className.includes('specialPanel')) gridStr += 'S';
+    else if (cell.className.includes('startPanel')) gridStr += 'A';
+    else gridStr += ' ';
+  });
+
+  return gridStr;
 }
 
 // fonction permettant de visualiser l'état de l'historique
@@ -76,22 +102,22 @@ function addHistoryState() {
 
 function resetHistory() {
   historyStateIndex = 0;
-  historyStates = [];
+  history = [];
 }
 
 function onCellClick(event) {
   if (event.which !== 1) return;
   const selectedImage = imageSelector.value;
 
-  if (event.target.classList.contains("blueCheckpoint")) {
-    enableCheckpointOption("blueCheckpoint");
-  } else if (event.target.classList.contains("greenCheckpoint")) {
-    enableCheckpointOption("greenCheckpoint");
-  } else if (event.target.classList.contains("redCheckpoint")) {
-    enableCheckpointOption("redCheckpoint");
-  } else if (event.target.classList.contains("yellowCheckpoint")) {
-    enableCheckpointOption("yellowCheckpoint");
-  } else if (event.target.classList.contains("startPanel")) {
+  if (event.target.classList.contains('blueCheckpoint')) {
+    enableCheckpointOption('blueCheckpoint');
+  } else if (event.target.classList.contains('greenCheckpoint')) {
+    enableCheckpointOption('greenCheckpoint');
+  } else if (event.target.classList.contains('redCheckpoint')) {
+    enableCheckpointOption('redCheckpoint');
+  } else if (event.target.classList.contains('yellowCheckpoint')) {
+    enableCheckpointOption('yellowCheckpoint');
+  } else if (event.target.classList.contains('startPanel')) {
     isStartPanelUsed = false;
   }
 
@@ -99,7 +125,7 @@ function onCellClick(event) {
   if (selectedImage !== 'empty') {
     event.target.classList.add(selectedImage);
 
-    if (selectedImage.includes("Checkpoint")) {
+    if (selectedImage.includes('Checkpoint')) {
       usedCheckpoints.add(selectedImage);
       imageSelector.querySelectorAll(`[value='${selectedImage}']`)[0].disabled = true;
       imageSelector.value = 'empty';
@@ -115,46 +141,22 @@ function onCellClick(event) {
 }
 
 function generateGrid() {
-  for (let i = 0; i < gridSizeInCell ** 2; i++) {
+  const callback = (event) => {
+    if (!mouseDownTarget) return;
+    if (mouseDownTarget === event.target) return;
+    onCellClick(event);
+  };
+  for (let i = 0; i < gridSizeInCell ** 2; i += 1) {
     const gridItem = document.createElement('div');
     gridItem.classList.add('grid-item');
     gridItem.draggable = false;
     gridContainer.appendChild(gridItem);
     gridItem.addEventListener('click', onCellClick);
-    gridItem.addEventListener('mousemove', (event) => {
-      if (!mouseDownTarget) return;
-      if (mouseDownTarget === event.target) return;
-      onCellClick(event);
-    });
+    gridItem.addEventListener('mousemove', callback);
   }
 }
 
-function getGridStr() {
-  let gridStr = "";
-
-  document.querySelectorAll('.grid-item').forEach((cell, index) => {
-    if (cell.className.includes('blueCheckpoint')) gridStr += "B";
-    else if (cell.className.includes('greenCheckpoint')) gridStr += "G";
-    else if (cell.className.includes('redCheckpoint')) gridStr += "R";
-    else if (cell.className.includes('yellowCheckpoint')) gridStr += "Y";
-    else if (cell.className.includes('dice')) gridStr += "D";
-    else if (cell.className.includes('damagePanel')) gridStr += "P";
-    else if (cell.className.includes('horizontalTeleporter')) gridStr += "H";
-    else if (cell.className.includes('verticalTeleporter')) gridStr += "V";
-    else if (cell.className.includes('bonusPanel')) gridStr += "O";
-    else if (cell.className.includes('commandPanel')) gridStr += "C";
-    else if (cell.className.includes('gpBoosterPanel')) gridStr += "M";
-    else if (cell.className.includes('specialPanel')) gridStr += "S";
-    else if (cell.className.includes('startPanel')) gridStr += "A";
-    else gridStr += " ";
-  });
-
-  return gridStr;
-}
-
 function exportGrid() {
-  const exportList = document.querySelector("#export-list");
-
   const exportName = prompt("Entrez un nom pour l'export : ");
   if (!exportName) return;
 
@@ -166,7 +168,7 @@ function exportGrid() {
 
   localStorage.setItem(exportName, getGridStr());
 
-  const option = document.createElement("option");
+  const option = document.createElement('option');
   option.value = exportName;
   option.innerHTML = exportName;
   exportList.appendChild(option);
@@ -205,7 +207,7 @@ function resetImageSelector() {
 function resetGrid() {
   resetImageSelector();
   resetHistory();
-  addHistoryState()
+  addHistoryState();
 }
 
 function getNeighbourCellsIndexes(cellIndex) {
@@ -227,38 +229,60 @@ function getNeighbourCellsIndexes(cellIndex) {
   return neighbours;
 }
 
-function getNeighbourCellsStates(cellIndex) {
+function getNeighbourCellsStates(gridStr, cellIndex) {
   const neighboursIndexes = getNeighbourCellsIndexes(cellIndex);
-  const neighbourCellsStates = [" ", " ", " ", " "];
-  const gritStr = getGridStr();
-  neighbourCellsStates[0] = gritStr[neighboursIndexes[0]] || " ";
-  neighbourCellsStates[1] = gritStr[neighboursIndexes[1]] || " ";
-  neighbourCellsStates[2] = gritStr[neighboursIndexes[2]] || " ";
-  neighbourCellsStates[3] = gritStr[neighboursIndexes[3]] || " ";
+  const neighbourCellsStates = [' ', ' ', ' ', ' '];
+  neighbourCellsStates[0] = gridStr[neighboursIndexes[0]] || ' ';
+  neighbourCellsStates[1] = gridStr[neighboursIndexes[1]] || ' ';
+  neighbourCellsStates[2] = gridStr[neighboursIndexes[2]] || ' ';
+  neighbourCellsStates[3] = gridStr[neighboursIndexes[3]] || ' ';
 
   return neighbourCellsStates;
 }
 
-function checkIfCellIsIsolated(gridContent, cellIndex) {
-  const neighbours = getNeighbourCellsStates(cellIndex).join('').replaceAll(' ', '');
-  return gridContent[cellIndex] !== ' ' && neighbours.length < 2;
+function checkIfCellIsIsolated(gridStr, cellIndex) {
+  const neighbours = getNeighbourCellsStates(gridStr, cellIndex).filter((neighbour) => neighbour !== ' ');
+  return neighbours.length < 2;
 }
 
+function checkIfDiceHasDamagePanelNeighbour(gridStr, cellIndex) {
+  const neighbours = getNeighbourCellsStates(gridStr, cellIndex);
+  return neighbours.includes('P');
+}
+
+function checkIfDamagePanelHasDiceOrDamagePanelNeighbour(gridStr, cellIndex) {
+  const neighbours = getNeighbourCellsStates(gridStr, cellIndex);
+  return neighbours.includes('D') || neighbours.includes('P');
+}
+
+function checkIfVerticalTeleporterHasHorizontalTeleporterNeighbour(gridStr, cellIndex) {
+  const neighbours = getNeighbourCellsStates(gridStr, cellIndex);
+  return neighbours.includes('H');
+}
+
+function checkIfHorizontalTeleporterHasVerticalTeleporterNeighbour(gridStr, cellIndex) {
+  const neighbours = getNeighbourCellsStates(gridStr, cellIndex);
+  return neighbours.includes('V');
+}
 
 function checkGridValidity() {
-  const gridContent = getGridStr();
+  const gridStr = getGridStr();
   const messages = [];
 
-  if(!gridContent.includes("A")) {
-    messages.push("La grille doit contenir une case de départ");
+  if (!gridStr.includes('A')) {
+    messages.push('La grille doit contenir une case de départ');
   }
 
-  if(!gridContent.includes("B") || !gridContent.includes("G") || !gridContent.includes("R") || !gridContent.includes("Y")) {
-    messages.push("La grille doit contenir tous les checkpoints");
+  if (!gridStr.includes('B') || !gridStr.includes('G') || !gridStr.includes('R') || !gridStr.includes('Y')) {
+    messages.push('La grille doit contenir tous les checkpoints');
   }
 
-  for (let i = 0; i < gridSizeInCell ** 2; i++) {
-    if (checkIfCellIsIsolated(gridContent, i)) messages.push(`La case ${i} est isolée`);
+  for (let i = 0; i < gridSizeInCell ** 2; i += 1) {
+    if (gridStr[i] !== ' ' && checkIfCellIsIsolated(gridStr, i)) messages.push(`La case ${i} est isolée`);
+    if (gridStr[i] === 'D' && !checkIfDiceHasDamagePanelNeighbour(gridStr, i)) messages.push(`Le dé ${i} n'est pas entouré d'au moins 1 case "damagePanel"`);
+    if (gridStr[i] === 'P' && !checkIfDamagePanelHasDiceOrDamagePanelNeighbour(gridStr, i)) messages.push(`La case "damagePanel" ${i} n'est pas entourée d'au moins 1 dé ou d'une autre case "damagePanel"`);
+    if (gridStr[i] === 'V' && checkIfVerticalTeleporterHasHorizontalTeleporterNeighbour(gridStr, i)) messages.push(`Le téléporteur vertical ${i} est entouré d'un téléporteur horizontal`);
+    if (gridStr[i] === 'H' && checkIfHorizontalTeleporterHasVerticalTeleporterNeighbour(gridStr, i)) messages.push(`Le téléporteur horizontal ${i} est entouré d'un téléporteur vertical`);
   }
 
   // Vérifier que les "dice" sont entourés d'au moins 1 case "damagePanel"
@@ -267,7 +291,7 @@ function checkGridValidity() {
 
   // Vérifier que les "checkpoint" ne sont pas trop proches les uns des autres
 
-  // Vérifier qu'il n'y ait pas de cul-de-sac 
+  // Vérifier qu'il n'y ait pas de cul-de-sac
 
   if (messages.length === 0) {
     alert('La grille est valide !');
@@ -278,31 +302,32 @@ function checkGridValidity() {
 }
 
 function loadGridByString(gridStr) {
-  // remplir la grille avec les données 
+  // remplir la grille avec les données
   gridSizeInCell = Math.sqrt(gridStr.length);
   gridSizeInput.value = gridSizeInCell;
   document.documentElement.style.setProperty('--grid-size-in-cell', gridSizeInCell);
-  gridContainer.innerHTML = "";
+  gridContainer.innerHTML = '';
   generateGrid();
   const gridItems = document.querySelectorAll('.grid-item');
-  for (let i = 0; i < gridItems.length; i++) {
-    gridItems[i].className = "grid-item";
+  for (let i = 0; i < gridItems.length; i += 1) {
+    gridItems[i].className = 'grid-item';
 
-    switch(gridStr[i]) {
-      case "B": gridItems[i].classList.add('blueCheckpoint'); break;
-      case "G": gridItems[i].classList.add('greenCheckpoint'); break;
-      case "R": gridItems[i].classList.add('redCheckpoint'); break;
-      case "Y": gridItems[i].classList.add('yellowCheckpoint'); break;
-      case "D": gridItems[i].classList.add('dice'); break;
-      case "P": gridItems[i].classList.add('damagePanel'); break;
-      case "H": gridItems[i].classList.add('horizontalTeleporter'); break;
-      case "V": gridItems[i].classList.add('verticalTeleporter'); break;
-      case "O": gridItems[i].classList.add('bonusPanel'); break;
-      case "C": gridItems[i].classList.add('commandPanel'); break;
-      case "M": gridItems[i].classList.add('gpBoosterPanel'); break;
-      case "S": gridItems[i].classList.add('specialPanel'); break;
-      case "A": gridItems[i].classList.add('startPanel'); break;
-    }       
+    switch (gridStr[i]) {
+      case 'B': gridItems[i].classList.add('blueCheckpoint'); break;
+      case 'G': gridItems[i].classList.add('greenCheckpoint'); break;
+      case 'R': gridItems[i].classList.add('redCheckpoint'); break;
+      case 'Y': gridItems[i].classList.add('yellowCheckpoint'); break;
+      case 'D': gridItems[i].classList.add('dice'); break;
+      case 'P': gridItems[i].classList.add('damagePanel'); break;
+      case 'H': gridItems[i].classList.add('horizontalTeleporter'); break;
+      case 'V': gridItems[i].classList.add('verticalTeleporter'); break;
+      case 'O': gridItems[i].classList.add('bonusPanel'); break;
+      case 'C': gridItems[i].classList.add('commandPanel'); break;
+      case 'M': gridItems[i].classList.add('gpBoosterPanel'); break;
+      case 'S': gridItems[i].classList.add('specialPanel'); break;
+      case 'A': gridItems[i].classList.add('startPanel'); break;
+      default: break;
+    }
   }
 
   if (gridStr.includes('B')) usedCheckpoints.add('blueCheckpoint');
@@ -311,11 +336,11 @@ function loadGridByString(gridStr) {
   if (gridStr.includes('Y')) usedCheckpoints.add('yellowCheckpoint');
   if (gridStr.includes('A')) isStartPanelUsed = true;
 
-  const checkpointOptions = Array.from(imageSelector.querySelectorAll("option")).filter(option => option.value.includes("Checkpoint"));
+  const checkpointOptions = Array.from(imageSelector.querySelectorAll('option')).filter((option) => option.value.includes('Checkpoint'));
   enableAllOptions();
 
   for (const checkpoint of usedCheckpoints) {
-    const option = checkpointOptions.find(opt => opt.value === checkpoint.trim());
+    const option = checkpointOptions.find((opt) => opt.value === checkpoint.trim());
     option.disabled = true;
   }
 
@@ -342,9 +367,8 @@ function importGrid() {
 }
 
 function deleteExport() {
-  const exportList = document.querySelector("#export-list");
   const exportName = exportList.value;
-  if (exportName === "default") return;
+  if (exportName === 'default') return;
   localStorage.removeItem(exportName);
   exportList.removeChild(exportList.querySelector(`[value='${exportName}']`));
   exportList.value = 'default';
@@ -354,9 +378,9 @@ function shiftUp() {
   const gridItems = document.querySelectorAll('.grid-item');
   const firstRowItems = Array.from(gridItems).slice(0, gridSizeInCell);
 
-  for (let i = 0; i < firstRowItems.length; i++) {
+  for (let i = 0; i < firstRowItems.length; i += 1) {
     const item = firstRowItems[i];
-    item.className = "grid-item";
+    item.className = 'grid-item';
     gridContainer.appendChild(item);
   }
 }
@@ -365,28 +389,28 @@ function shiftDown() {
   const gridItems = document.querySelectorAll('.grid-item');
   const lastRowItems = Array.from(gridItems).slice(-gridSizeInCell);
 
-  for (let i = lastRowItems.length - 1; i >= 0; i--) {
+  for (let i = lastRowItems.length - 1; i >= 0; i -= 1) {
     const item = lastRowItems[i];
-    item.className = "grid-item";
+    item.className = 'grid-item';
     gridContainer.prepend(item);
   }
 }
 
 function shiftLeft() {
   const gridItems = document.querySelectorAll('.grid-item');
-  const item = gridItems[0]
-  item.className = "grid-item";
-  const leftmostItems = Array.from(gridItems).filter((item, index) => (index + 1) % gridSizeInCell === 1);
-  leftmostItems.forEach((item => item.className = "grid-item"));
+  const item = gridItems[0];
+  item.className = 'grid-item';
+  const leftmostItems = Array.from(gridItems).filter((i, index) => (index + 1) % gridSizeInCell === 1);
+  leftmostItems.forEach(((itm) => { itm.className = 'grid-item'; }));
   gridContainer.appendChild(item);
 }
 
 function shiftRight() {
   const gridItems = document.querySelectorAll('.grid-item');
   const item = gridItems[gridItems.length - 1];
-  item.className = "grid-item";
-  const rightmostItems = Array.from(gridItems).filter((item, index) => (index + 1) % gridSizeInCell === 0);
-  rightmostItems.forEach((item => item.className = "grid-item"));
+  item.className = 'grid-item';
+  const rightmostItems = Array.from(gridItems).filter((i, index) => (index + 1) % gridSizeInCell === 0);
+  rightmostItems.forEach(((itm) => { itm.className = 'grid-item'; }));
   gridContainer.prepend(item);
 }
 
@@ -394,15 +418,14 @@ function onGridSizeChange(event) {
   const gridSize = event.target.value;
   gridSizeInCell = gridSize;
   document.documentElement.style.setProperty('--grid-size-in-cell', gridSize);
-  const gridContainer = document.querySelector('.grid-container');
   gridContainer.innerHTML = '';
   generateGrid();
-  enableAllOptions()
+  enableAllOptions();
 }
 
 function onWindowQuit(event) {
   if (hasUnsavedData) {
-    event.returnValue = "Vous avez des données non enregistrées sur cette page. Êtes-vous sûr de vouloir quitter?";
+    event.returnValue = 'Vous avez des données non enregistrées sur cette page. Êtes-vous sûr de vouloir quitter?';
   }
 }
 
@@ -424,7 +447,7 @@ function onDrag(event) {
 
 function onPreviousHistoryState() {
   if (historyStateIndex === 0) return;
-  historyStateIndex--;
+  historyStateIndex -= 1;
   if (typeof history[historyStateIndex] === 'undefined') return;
   resetImageSelector();
   loadGridByString(history[historyStateIndex]);
@@ -432,7 +455,7 @@ function onPreviousHistoryState() {
 
 function onNextHistoryState() {
   if (historyStateIndex === history.length - 1) return;
-  historyStateIndex++;
+  historyStateIndex += 1;
   if (typeof history[historyStateIndex] === 'undefined') return;
   resetImageSelector();
   loadGridByString(history[historyStateIndex]);
@@ -448,19 +471,19 @@ gridSizeInput.addEventListener('change', onGridSizeChange);
 exportButton.addEventListener('click', exportGrid);
 resetButton.addEventListener('click', resetGrid);
 checkValidity.addEventListener('click', checkGridValidity);
-importButton.addEventListener("click", importGrid);
-deleteExportButton.addEventListener("click", deleteExport);
-upButton.addEventListener("click", shiftUp);
-downButton.addEventListener("click", shiftDown);
-leftButton.addEventListener("click", shiftLeft);
-rightButton.addEventListener("click", shiftRight);
-imageSelector.addEventListener("change", onImageSelect);
-window.addEventListener("beforeunload", onWindowQuit);
-document.addEventListener("mousedown", onMouseDown);
-document.addEventListener("mouseup", onMouseUp);
-document.addEventListener("mouseleave", onMouseLeave);
-document.addEventListener("dragstart", onDrag);
-document.addEventListener("dragover", onDrag);
+importButton.addEventListener('click', importGrid);
+deleteExportButton.addEventListener('click', deleteExport);
+upButton.addEventListener('click', shiftUp);
+downButton.addEventListener('click', shiftDown);
+leftButton.addEventListener('click', shiftLeft);
+rightButton.addEventListener('click', shiftRight);
+imageSelector.addEventListener('change', onImageSelect);
+window.addEventListener('beforeunload', onWindowQuit);
+document.addEventListener('mousedown', onMouseDown);
+document.addEventListener('mouseup', onMouseUp);
+document.addEventListener('mouseleave', onMouseLeave);
+document.addEventListener('dragstart', onDrag);
+document.addEventListener('dragover', onDrag);
 document.addEventListener('keydown', onKeyDown);
 
 generateGrid();
