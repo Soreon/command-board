@@ -153,12 +153,19 @@ function getGridStr() {
 }
 
 function exportGrid() {
+  const exportList = document.querySelector("#export-list");
+
   const exportName = prompt("Entrez un nom pour l'export : ");
   if (!exportName) return;
 
+  if (localStorage.getItem(exportName) !== null) {
+    const overwrite = confirm(`Un export avec le nom ${exportName} existe déjà. Voulez-vous l'écraser ?`);
+    if (!overwrite) return;
+    exportList.querySelectorAll(`[value='${exportName}']`)[0].remove();
+  }
+
   localStorage.setItem(exportName, getGridStr());
 
-  const exportList = document.querySelector("#export-list");
   const option = document.createElement("option");
   option.value = exportName;
   option.innerHTML = exportName;
