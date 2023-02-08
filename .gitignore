@@ -1,2 +1,14 @@
 ﻿.history/
 .vscode/
+bower_components
+node_modules
+release-builds
+.history
+changelogs
+
+#files
+*.tgz
+*.log
+*.vscode
+package-lock.json
+.unotes/unotes_meta.json
