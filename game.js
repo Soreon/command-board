@@ -295,8 +295,10 @@ function checkGridValidity() {
 
   if (messages.length === 0) {
     alert('La grille est valide !');
+    console.log('La grille est valide !');
   } else {
     alert(messages.join('\n'));
+    console.log(messages.join('\n'));
   }
   return messages.length === 0;
 }

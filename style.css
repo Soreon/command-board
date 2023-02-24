@@ -14,6 +14,7 @@ body {
   width: fit-content;
   height: fit-content;
   font-size: 14px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 select {
