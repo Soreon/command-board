@@ -6,6 +6,7 @@ const gridContainer = document.querySelector('.grid-container');
 const gridSizeInput = document.querySelector('#grid-size-input');
 const resetButton = document.querySelector('#reset-cell');
 const checkValidity = document.querySelector('#check-validity');
+const generateGameGrid = document.querySelector('#generate-game-grid');
 const imageSelector = document.querySelector('#image-selector');
 const imagePreview = document.querySelector('#image-preview');
 const exportButton = document.querySelector('#export-button');
@@ -468,11 +469,37 @@ function onKeyDown(event) {
   if (event.ctrlKey && event.key === 'y') onNextHistoryState();
 }
 
+function generateNewGameGrid() {
+  resetGrid();
+
+  const gridItems = document.querySelectorAll('.grid-item');
+  gridItems.forEach((item) => {
+    item.className = 'grid-item';
+  });
+
+  const gridItemsArray = Array.from(gridItems);
+  const randomIndex = Math.floor(Math.random() * gridItemsArray.length);
+  gridItemsArray[randomIndex].classList.add('startPanel');
+
+  const randomCheckpointIndex = Math.floor(Math.random() * gridItemsArray.length);
+  gridItemsArray[randomCheckpointIndex].classList.add('blueCheckpoint');
+
+  const randomCheckpointIndex2 = Math.floor(Math.random() * gridItemsArray.length);
+  gridItemsArray[randomCheckpointIndex2].classList.add('greenCheckpoint');
+
+  const randomCheckpointIndex3 = Math.floor(Math.random() * gridItemsArray.length);
+  gridItemsArray[randomCheckpointIndex3].classList.add('redCheckpoint');
+
+  const randomCheckpointIndex4 = Math.floor(Math.random() * gridItemsArray.length);
+  gridItemsArray[randomCheckpointIndex4].classList.add('yellowCheckpoint');
+}
+
 gridSizeInput.value = gridSizeInCell;
 gridSizeInput.addEventListener('change', onGridSizeChange);
 exportButton.addEventListener('click', exportGrid);
 resetButton.addEventListener('click', resetGrid);
 checkValidity.addEventListener('click', checkGridValidity);
+generateGameGrid.addEventListener('click', generateNewGameGrid);
 importButton.addEventListener('click', importGrid);
 deleteExportButton.addEventListener('click', deleteExport);
 upButton.addEventListener('click', shiftUp);
