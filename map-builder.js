@@ -31,7 +31,6 @@ function updateBoardButtonsState() {
   deleteSavedBoardButton.disabled = !isBoardSelected;
 }
 
-
 function refreshSavedBoardsList() {
   savedBoardsList.innerHTML = '';
 
@@ -167,10 +166,10 @@ function generateGrid() {
 }
 
 function saveGrid() {
-  const boardName = prompt("Enter a board name : ");
+  const boardName = prompt('Enter a board name : ');
   if (!boardName) return;
 
-  let boards = JSON.parse(localStorage.getItem('boards')) || {};
+  const boards = JSON.parse(localStorage.getItem('boards')) || {};
 
   if (boards[boardName] !== undefined) {
     const overwrite = confirm(`A board with the name ${boardName} already exists. Do you want to overwrite it?`);
@@ -386,7 +385,7 @@ function deleteBoard() {
   const boardName = savedBoardsList.value;
   if (boardName === 'default') return;
 
-  let boards = JSON.parse(localStorage.getItem('boards')) || {};
+  const boards = JSON.parse(localStorage.getItem('boards')) || {};
   delete boards[boardName];
   localStorage.setItem('boards', JSON.stringify(boards));
 

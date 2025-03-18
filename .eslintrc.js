@@ -12,16 +12,10 @@ module.exports = {
     'no-unused-vars': 0,
     'import/extensions': 0,
     'import/no-unresolved': 0,
+    'guard-for-in': 0,
   },
   parser: '@babel/eslint-parser',
   parserOptions: {
     requireConfigFile: false,
-  },
-  globals: {
-    Chart: 'readonly',
-    luxon: 'readonly',
-    crel: 'readonly',
-    sanefSIG: 'writable',
-    XLSX: 'readonly',
   },
 };
