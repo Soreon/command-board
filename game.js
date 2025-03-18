@@ -9,10 +9,10 @@ const checkValidity = document.querySelector('#check-validity');
 const generateGameGrid = document.querySelector('#generate-game-grid');
 const imageSelector = document.querySelector('#image-selector');
 const imagePreview = document.querySelector('#image-preview');
-const exportButton = document.querySelector('#export-button');
-const importButton = document.querySelector('#import-button');
-const exportList = document.querySelector('#export-list');
-const deleteExportButton = document.querySelector('#delete-export-button');
+const saveButton = document.querySelector('#save-button');
+const loadButton = document.querySelector('#load-button');
+const savedBoardsList = document.querySelector('#saved-boards-list');
+const deleteSavedBoardButton = document.querySelector('#delete-saved-board-button');
 const upButton = document.querySelector('#up-button');
 const downButton = document.querySelector('#down-button');
 const leftButton = document.querySelector('#left-button');
@@ -25,21 +25,21 @@ let mouseDownTarget = null;
 let history = [];
 let historyStateIndex = 0;
 
-function refreshExportList() {
-  exportList.innerHTML = '';
+function refreshSavedBoardsList() {
+  savedBoardsList.innerHTML = '';
 
-  let exportOption = document.createElement('option');
-  exportOption.value = 'default';
-  exportOption.selected = true;
-  exportOption.innerHTML = '';
-  exportList.appendChild(exportOption);
+  let savedBoardOption = document.createElement('option');
+  savedBoardOption.value = 'default';
+  savedBoardOption.selected = true;
+  savedBoardOption.innerHTML = '';
+  savedBoardsList.appendChild(savedBoardOption);
 
   const boards = JSON.parse(localStorage.getItem('boards')) || {};
-  for (const exportName in boards) {
-    exportOption = document.createElement('option');
-    exportOption.value = exportName;
-    exportOption.innerHTML = exportName;
-    exportList.appendChild(exportOption);
+  for (const board in boards) {
+    savedBoardOption = document.createElement('option');
+    savedBoardOption.value = board;
+    savedBoardOption.innerHTML = board;
+    savedBoardsList.appendChild(savedBoardOption);
   }
 }
 
@@ -157,27 +157,27 @@ function generateGrid() {
   }
 }
 
-function exportGrid() {
-  const exportName = prompt("Entrez un nom pour l'export : ");
-  if (!exportName) return;
+function saveGrid() {
+  const boardName = prompt("Enter a board name : ");
+  if (!boardName) return;
 
   let boards = JSON.parse(localStorage.getItem('boards')) || {};
 
-  if (boards[exportName] !== undefined) {
-    const overwrite = confirm(`Un export avec le nom ${exportName} existe déjà. Voulez-vous l'écraser ?`);
+  if (boards[boardName] !== undefined) {
+    const overwrite = confirm(`A board with the name ${boardName} already exists. Do you want to overwrite it?`);
     if (!overwrite) return;
-    exportList.querySelectorAll(`[value='${exportName}']`)[0].remove();
+    savedBoardsList.querySelectorAll(`[value='${boardName}']`)[0].remove();
   }
 
-  boards[exportName] = getGridStr();
+  boards[boardName] = getGridStr();
   localStorage.setItem('boards', JSON.stringify(boards));
 
   const option = document.createElement('option');
-  option.value = exportName;
-  option.innerHTML = exportName;
-  exportList.appendChild(option);
+  option.value = boardName;
+  option.innerHTML = boardName;
+  savedBoardsList.appendChild(option);
 
-  console.log(`Les données de la grille ont été exportées avec succès sous le nom ${exportName}`);
+  console.log(`The grid data has been successfully saved under the name ${boardName}`);
 }
 
 function resetImageSelector() {
@@ -205,7 +205,7 @@ function resetImageSelector() {
     }
     gridItem.className = 'grid-item';
   });
-  exportList.value = 'default';
+  savedBoardsList.value = 'default';
 }
 
 function resetGrid() {
@@ -274,19 +274,19 @@ function checkGridValidity() {
   const messages = [];
 
   if (!gridStr.includes('A')) {
-    messages.push('La grille doit contenir une case de départ');
+    messages.push('The grid must contain a start cell');
   }
 
   if (!gridStr.includes('B') || !gridStr.includes('G') || !gridStr.includes('R') || !gridStr.includes('Y')) {
-    messages.push('La grille doit contenir tous les checkpoints');
+    messages.push('The grid must contain all checkpoints');
   }
 
   for (let i = 0; i < gridSizeInCell ** 2; i += 1) {
-    if (gridStr[i] !== ' ' && checkIfCellIsIsolated(gridStr, i)) messages.push(`La case ${i} est isolée`);
-    if (gridStr[i] === 'D' && !checkIfDiceHasDamagePanelNeighbour(gridStr, i)) messages.push(`Le dé ${i} n'est pas entouré d'au moins 1 case "damagePanel"`);
-    if (gridStr[i] === 'P' && !checkIfDamagePanelHasDiceOrDamagePanelNeighbour(gridStr, i)) messages.push(`La case "damagePanel" ${i} n'est pas entourée d'au moins 1 dé ou d'une autre case "damagePanel"`);
-    if (gridStr[i] === 'V' && checkIfVerticalTeleporterHasHorizontalTeleporterNeighbour(gridStr, i)) messages.push(`Le téléporteur vertical ${i} est entouré d'un téléporteur horizontal`);
-    if (gridStr[i] === 'H' && checkIfHorizontalTeleporterHasVerticalTeleporterNeighbour(gridStr, i)) messages.push(`Le téléporteur horizontal ${i} est entouré d'un téléporteur vertical`);
+    if (gridStr[i] !== ' ' && checkIfCellIsIsolated(gridStr, i)) messages.push(`Cell ${i} is isolated`);
+    if (gridStr[i] === 'D' && !checkIfDiceHasDamagePanelNeighbour(gridStr, i)) messages.push(`Dice ${i} is not surrounded by at least one "damagePanel" cell`);
+    if (gridStr[i] === 'P' && !checkIfDamagePanelHasDiceOrDamagePanelNeighbour(gridStr, i)) messages.push(`"DamagePanel" cell ${i} is not surrounded by at least one dice or another "damagePanel" cell`);
+    if (gridStr[i] === 'V' && checkIfVerticalTeleporterHasHorizontalTeleporterNeighbour(gridStr, i)) messages.push(`Vertical teleporter ${i} is surrounded by a horizontal teleporter`);
+    if (gridStr[i] === 'H' && checkIfHorizontalTeleporterHasVerticalTeleporterNeighbour(gridStr, i)) messages.push(`Horizontal teleporter ${i} is surrounded by a vertical teleporter`);
   }
 
   // Vérifier que les "dice" sont entourés d'au moins 1 case "damagePanel"
@@ -298,8 +298,8 @@ function checkGridValidity() {
   // Vérifier qu'il n'y ait pas de cul-de-sac
 
   if (messages.length === 0) {
-    alert('La grille est valide !');
-    console.log('La grille est valide !');
+    alert('The grid is valid!');
+    console.log('The grid is valid!');
   } else {
     alert(messages.join('\n'));
     console.log(messages.join('\n'));
@@ -354,35 +354,35 @@ function loadGridByString(gridStr) {
     imageSelector.querySelector("[value='startPanel']").disabled = true;
   }
 
-  exportList.value = 'default';
+  savedBoardsList.value = 'default';
 }
 
-function importGrid() {
-  const exportName = exportList.value;
-  if (!exportName) return;
+function loadBoard() {
+  const boardName = savedBoardsList.value;
+  if (!boardName) return;
 
   const boards = JSON.parse(localStorage.getItem('boards')) || {};
-  const gridStr = boards[exportName];
+  const gridStr = boards[boardName];
   if (!gridStr) {
-    console.log(`Aucun export n'a été trouvé sous le nom ${exportName}`);
+    console.log(`No board found with the name ${boardName}`);
     return;
   }
 
   loadGridByString(gridStr);
 
-  console.log(`Les données de la grille ont été importées avec succès depuis ${exportName}`);
+  console.log(`The grid data has been successfully load from ${boardName}`);
 }
 
-function deleteExport() {
-  const exportName = exportList.value;
-  if (exportName === 'default') return;
+function deleteBoard() {
+  const boardName = savedBoardsList.value;
+  if (boardName === 'default') return;
 
   let boards = JSON.parse(localStorage.getItem('boards')) || {};
-  delete boards[exportName];
+  delete boards[boardName];
   localStorage.setItem('boards', JSON.stringify(boards));
 
-  exportList.removeChild(exportList.querySelector(`[value='${exportName}']`));
-  exportList.value = 'default';
+  savedBoardsList.removeChild(savedBoardsList.querySelector(`[value='${boardName}']`));
+  savedBoardsList.value = 'default';
 }
 
 function shiftUp() {
@@ -504,12 +504,12 @@ function generateNewGameGrid() {
 
 gridSizeInput.value = gridSizeInCell;
 gridSizeInput.addEventListener('change', onGridSizeChange);
-exportButton.addEventListener('click', exportGrid);
+saveButton.addEventListener('click', saveGrid);
 resetButton.addEventListener('click', resetGrid);
 checkValidity.addEventListener('click', checkGridValidity);
 generateGameGrid.addEventListener('click', generateNewGameGrid);
-importButton.addEventListener('click', importGrid);
-deleteExportButton.addEventListener('click', deleteExport);
+loadButton.addEventListener('click', loadBoard);
+deleteSavedBoardButton.addEventListener('click', deleteBoard);
 upButton.addEventListener('click', shiftUp);
 downButton.addEventListener('click', shiftDown);
 leftButton.addEventListener('click', shiftLeft);
@@ -524,5 +524,5 @@ document.addEventListener('dragover', onDrag);
 document.addEventListener('keydown', onKeyDown);
 
 generateGrid();
-refreshExportList();
+refreshSavedBoardsList();
 addHistoryState();

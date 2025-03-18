@@ -126,22 +126,22 @@ select {
   border: 1px solid #0000000A;
 }
 
-#export-list {
+#saved-boards-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-#export-list option {
+#saved-boards-list option {
   padding: 5px;
   border: 1px solid #ccc;
 }
 
-#export-list option:hover {
+#saved-boards-list option:hover {
   background-color: #eee;
 }
 
-#export-list option:active, #export-list option:focus {
+#saved-boards-list option:active, #saved-boards-list option:focus {
   background-color: #ddd;
 }
 
