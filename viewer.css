@@ -72,7 +72,7 @@ body {
 .board .cell.t-green-checkpoint { --cell-image: url('./images/greenCheckpoint.png'); }
 .board .cell.t-gp-booster-panel { --cell-image: url('./images/gpBoosterPanel.png'); }
 .board .cell.t-damage-panel { --cell-image: url('./images/damagePanel.png'); }
-.board .cell.t-command-panel { --cell-image: url('./images/commandPanel.png'); }
+.board .cell.t-command-panel { --cell-image: url('./images/commandPanel.png'); --cell-color: #bfbfbf; }
 .board .cell.t-bonus-panel { --cell-image: url('./images/bonusPanel.png'); }
 .board .cell.t-colored-command-panel-1 { --cell-image: url('./images/coloredCommandPanel/1.png');  --cell-color: #dfc473; }
 .board .cell.t-colored-command-panel-2 { --cell-image: url('./images/coloredCommandPanel/2.png');  --cell-color: #c2d565; }
@@ -183,6 +183,30 @@ body {
   background-image: none; 
   background-color: #71dff8;
 }
+
+.board .cell.t-vertical-teleporter { 
+  transform: scale3d(0.3, 1.2, 0.3) translateY(0px) translateZ(calc(-1* var(--cell-height)));
+}
+
+.board .cell.t-vertical-teleporter .face.Yplus { 
+  background-image: none; 
+  background-color: #71dff8;
+}
+
+
+.board .cell.t-vertical-teleporter .face.Yminus { 
+  background-image: none; 
+  background-color: #71dff8;
+}
+
+.board .cell.t-vertical-teleporter .face.Xplus { 
+  transform: rotateY(90deg) translateX(calc(var(--cell-size) / 2)) translateZ(calc(var(--cell-size) / 2)) rotateZ(0deg); 
+}
+
+.board .cell.t-vertical-teleporter .face.Xminus { 
+  transform: rotateY(-90deg) translateX(calc((var(--cell-size) * -1) / 2)) translateZ(calc((var(--cell-size) / 2))) rotateZ(0deg);
+}
+
 
 .board .cell.no-box .face.Xplus, .board .cell.no-box .face.Xminus, .board .cell.no-box .face.Yplus, .board .cell.no-box .face.Yminus, .board .cell.no-box .face.face.Zminus { 
   display: none;
