@@ -34,8 +34,8 @@ function refreshExportList() {
   exportOption.innerHTML = '';
   exportList.appendChild(exportOption);
 
-  for (let i = 0; i < localStorage.length; i += 1) {
-    const exportName = localStorage.key(i);
+  const boards = JSON.parse(localStorage.getItem('boards')) || {};
+  for (const exportName in boards) {
     exportOption = document.createElement('option');
     exportOption.value = exportName;
     exportOption.innerHTML = exportName;
@@ -161,13 +161,16 @@ function exportGrid() {
   const exportName = prompt("Entrez un nom pour l'export : ");
   if (!exportName) return;
 
-  if (localStorage.getItem(exportName) !== null) {
+  let boards = JSON.parse(localStorage.getItem('boards')) || {};
+
+  if (boards[exportName] !== undefined) {
     const overwrite = confirm(`Un export avec le nom ${exportName} existe déjà. Voulez-vous l'écraser ?`);
     if (!overwrite) return;
     exportList.querySelectorAll(`[value='${exportName}']`)[0].remove();
   }
 
-  localStorage.setItem(exportName, getGridStr());
+  boards[exportName] = getGridStr();
+  localStorage.setItem('boards', JSON.stringify(boards));
 
   const option = document.createElement('option');
   option.value = exportName;
@@ -356,9 +359,10 @@ function loadGridByString(gridStr) {
 
 function importGrid() {
   const exportName = exportList.value;
-  if (!exportName) return; // si l'utilisateur annule la saisie
+  if (!exportName) return;
 
-  const gridStr = localStorage.getItem(exportName);
+  const boards = JSON.parse(localStorage.getItem('boards')) || {};
+  const gridStr = boards[exportName];
   if (!gridStr) {
     console.log(`Aucun export n'a été trouvé sous le nom ${exportName}`);
     return;
@@ -372,7 +376,11 @@ function importGrid() {
 function deleteExport() {
   const exportName = exportList.value;
   if (exportName === 'default') return;
-  localStorage.removeItem(exportName);
+
+  let boards = JSON.parse(localStorage.getItem('boards')) || {};
+  delete boards[exportName];
+  localStorage.setItem('boards', JSON.stringify(boards));
+
   exportList.removeChild(exportList.querySelector(`[value='${exportName}']`));
   exportList.value = 'default';
 }
