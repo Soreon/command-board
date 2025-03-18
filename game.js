@@ -435,11 +435,42 @@ function shiftRight() {
 }
 
 function onGridSizeChange(event) {
-  const gridSize = event.target.value;
-  gridSizeInCell = gridSize;
-  document.documentElement.style.setProperty('--grid-size-in-cell', gridSize);
+  const newGridSize = parseInt(event.target.value, 10);
+  const currentGridStr = getGridStr();
+  const oldGridSize = gridSizeInCell;
+
+  gridSizeInCell = newGridSize;
+  document.documentElement.style.setProperty('--grid-size-in-cell', newGridSize);
   gridContainer.innerHTML = '';
   generateGrid();
+
+  const gridItems = document.querySelectorAll('.grid-item');
+  for (let row = 0; row < oldGridSize; row += 1) {
+    for (let col = 0; col < oldGridSize; col += 1) {
+      const oldIndex = row * oldGridSize + col;
+      const newIndex = row * newGridSize + col;
+      if (newIndex < gridItems.length) {
+        gridItems[newIndex].className = 'grid-item';
+
+        switch (currentGridStr[oldIndex]) {
+          case 'B': gridItems[newIndex].classList.add('blueCheckpoint'); break;
+          case 'G': gridItems[newIndex].classList.add('greenCheckpoint'); break;
+          case 'R': gridItems[newIndex].classList.add('redCheckpoint'); break;
+          case 'Y': gridItems[newIndex].classList.add('yellowCheckpoint'); break;
+          case 'D': gridItems[newIndex].classList.add('dice'); break;
+          case 'P': gridItems[newIndex].classList.add('damagePanel'); break;
+          case 'H': gridItems[newIndex].classList.add('horizontalTeleporter'); break;
+          case 'V': gridItems[newIndex].classList.add('verticalTeleporter'); break;
+          case 'O': gridItems[newIndex].classList.add('bonusPanel'); break;
+          case 'C': gridItems[newIndex].classList.add('commandPanel'); break;
+          case 'M': gridItems[newIndex].classList.add('gpBoosterPanel'); break;
+          case 'S': gridItems[newIndex].classList.add('specialPanel'); break;
+          case 'A': gridItems[newIndex].classList.add('startPanel'); break;
+          default: break;
+        }
+      }
+    }
+  }
   enableAllOptions();
 }
 
