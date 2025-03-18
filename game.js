@@ -25,6 +25,13 @@ let mouseDownTarget = null;
 let history = [];
 let historyStateIndex = 0;
 
+function updateBoardButtonsState() {
+  const isBoardSelected = savedBoardsList.value !== 'default';
+  loadButton.disabled = !isBoardSelected;
+  deleteSavedBoardButton.disabled = !isBoardSelected;
+}
+
+
 function refreshSavedBoardsList() {
   savedBoardsList.innerHTML = '';
 
@@ -41,6 +48,8 @@ function refreshSavedBoardsList() {
     savedBoardOption.innerHTML = board;
     savedBoardsList.appendChild(savedBoardOption);
   }
+
+  updateBoardButtonsState();
 }
 
 function onImageSelect(event) {
@@ -353,8 +362,6 @@ function loadGridByString(gridStr) {
   if (isStartPanelUsed) {
     imageSelector.querySelector("[value='startPanel']").disabled = true;
   }
-
-  savedBoardsList.value = 'default';
 }
 
 function loadBoard() {
@@ -369,6 +376,8 @@ function loadBoard() {
   }
 
   loadGridByString(gridStr);
+  savedBoardsList.value = 'default';
+  updateBoardButtonsState();
 
   console.log(`The grid data has been successfully load from ${boardName}`);
 }
@@ -522,6 +531,7 @@ document.addEventListener('mouseleave', onMouseLeave);
 document.addEventListener('dragstart', onDrag);
 document.addEventListener('dragover', onDrag);
 document.addEventListener('keydown', onKeyDown);
+savedBoardsList.addEventListener('change', updateBoardButtonsState);
 
 generateGrid();
 refreshSavedBoardsList();
