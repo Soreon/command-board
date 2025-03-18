@@ -25,6 +25,47 @@ let mouseDownTarget = null;
 let history = [];
 let historyStateIndex = 0;
 
+// Mapping between cell class and cell data
+const cellClassToDataMap = {
+  blueCheckpoint: { type: 'checkpoint', color: 'blue' },
+  greenCheckpoint: { type: 'checkpoint', color: 'green' },
+  redCheckpoint: { type: 'checkpoint', color: 'red' },
+  yellowCheckpoint: { type: 'checkpoint', color: 'yellow' },
+  dice: { type: 'damage', hasDice: true },
+  damagePanel: { type: 'damage', noBox: true },
+  horizontalTeleporter: { type: 'teleporter', direction: 'horizontal' },
+  verticalTeleporter: { type: 'teleporter', direction: 'vertical' },
+  bonusPanel: { type: 'bonus' },
+  commandPanel: { type: 'command' },
+  gpBoosterPanel: { type: 'booster' },
+  specialPanel: { type: 'special' },
+  startPanel: { type: 'start' },
+  empty: {},
+};
+
+// Reverse mapping for data to class conversion
+const cellDataToClassMap = {
+  checkpoint: {
+    blue: 'blueCheckpoint',
+    green: 'greenCheckpoint',
+    red: 'redCheckpoint',
+    yellow: 'yellowCheckpoint',
+  },
+  damage: {
+    hasDice: 'dice',
+    noBox: 'damagePanel',
+  },
+  teleporter: {
+    horizontal: 'horizontalTeleporter',
+    vertical: 'verticalTeleporter',
+  },
+  bonus: 'bonusPanel',
+  command: 'commandPanel',
+  booster: 'gpBoosterPanel',
+  special: 'specialPanel',
+  start: 'startPanel',
+};
+
 function updateBoardButtonsState() {
   const isBoardSelected = savedBoardsList.value !== 'default';
   loadButton.disabled = !isBoardSelected;
@@ -72,40 +113,51 @@ function enableAllOptions() {
   }
 }
 
-function getGridStr() {
-  let gridStr = '';
+// Get the board data in JSON format
+function getBoardData() {
+  const boardData = [];
+  const cells = document.querySelectorAll('.grid-item');
 
-  document.querySelectorAll('.grid-item').forEach((cell, index) => {
-    if (cell.className.includes('blueCheckpoint')) gridStr += 'B';
-    else if (cell.className.includes('greenCheckpoint')) gridStr += 'G';
-    else if (cell.className.includes('redCheckpoint')) gridStr += 'R';
-    else if (cell.className.includes('yellowCheckpoint')) gridStr += 'Y';
-    else if (cell.className.includes('dice')) gridStr += 'D';
-    else if (cell.className.includes('damagePanel')) gridStr += 'P';
-    else if (cell.className.includes('horizontalTeleporter')) gridStr += 'H';
-    else if (cell.className.includes('verticalTeleporter')) gridStr += 'V';
-    else if (cell.className.includes('bonusPanel')) gridStr += 'O';
-    else if (cell.className.includes('commandPanel')) gridStr += 'C';
-    else if (cell.className.includes('gpBoosterPanel')) gridStr += 'M';
-    else if (cell.className.includes('specialPanel')) gridStr += 'S';
-    else if (cell.className.includes('startPanel')) gridStr += 'A';
-    else gridStr += ' ';
-  });
+  // Create a 2D array structure
+  for (let row = 0; row < gridSizeInCell; row += 1) {
+    const rowData = [];
+    for (let col = 0; col < gridSizeInCell; col += 1) {
+      const cellIndex = row * gridSizeInCell + col;
+      const cell = cells[cellIndex];
 
-  return gridStr;
+      // Convert cell class to data object
+      let cellData = {};
+
+      // Check for each possible cell class
+      for (const [className, dataObj] of Object.entries(cellClassToDataMap)) {
+        if (cell.classList.contains(className)) {
+          cellData = JSON.parse(JSON.stringify(dataObj)); // Deep copy
+          break;
+        }
+      }
+
+      rowData.push(cellData);
+    }
+    boardData.push(rowData);
+  }
+
+  return boardData;
 }
 
-// fonction permettant de visualiser l'état de l'historique
-// console.log([...history.map((s, i) => i === historyStateIndex ? `>|${s}|` : ` |${s}|`)].join('\n'))
+// Function to get a flattened string representation for history tracking
+function getBoardDataString() {
+  const boardData = getBoardData();
+  return JSON.stringify(boardData);
+}
 
 function addHistoryState() {
-  const gridStr = getGridStr();
-  if (history[history.length - 1] === gridStr) return;
+  const boardDataString = getBoardDataString();
+  if (history[history.length - 1] === boardDataString) return;
 
   if (history.length > 0 && historyStateIndex !== history.length - 1) {
     history.splice(historyStateIndex + 1, history.length - historyStateIndex);
   }
-  history.push(gridStr);
+  history.push(boardDataString);
   historyStateIndex = history.length - 1;
 }
 
@@ -177,7 +229,7 @@ function saveGrid() {
     savedBoardsList.querySelectorAll(`[value='${boardName}']`)[0].remove();
   }
 
-  boards[boardName] = getGridStr();
+  boards[boardName] = getBoardData();
   localStorage.setItem('boards', JSON.stringify(boards));
 
   const option = document.createElement('option');
@@ -241,69 +293,91 @@ function getNeighbourCellsIndexes(cellIndex) {
   return neighbours;
 }
 
-function getNeighbourCellsStates(gridStr, cellIndex) {
+// For validation purposes, we need to represent the board as a flat array
+function flattenBoardData(boardData) {
+  const flattened = [];
+  for (const row of boardData) {
+    for (const cell of row) {
+      let cellCode = ' ';
+      if (cell.type === 'checkpoint') {
+        if (cell.color === 'blue') cellCode = 'B';
+        else if (cell.color === 'green') cellCode = 'G';
+        else if (cell.color === 'red') cellCode = 'R';
+        else if (cell.color === 'yellow') cellCode = 'Y';
+      } else if (cell.type === 'damage') {
+        if (cell.hasDice) cellCode = 'D';
+        else cellCode = 'P';
+      } else if (cell.type === 'teleporter') {
+        if (cell.direction === 'horizontal') cellCode = 'H';
+        else cellCode = 'V';
+      } else if (cell.type === 'bonus') cellCode = 'O';
+      else if (cell.type === 'command') cellCode = 'C';
+      else if (cell.type === 'booster') cellCode = 'M';
+      else if (cell.type === 'special') cellCode = 'S';
+      else if (cell.type === 'start') cellCode = 'A';
+
+      flattened.push(cellCode);
+    }
+  }
+  return flattened;
+}
+
+function getNeighbourCellsStates(flatBoard, cellIndex) {
   const neighboursIndexes = getNeighbourCellsIndexes(cellIndex);
   const neighbourCellsStates = [' ', ' ', ' ', ' '];
-  neighbourCellsStates[0] = gridStr[neighboursIndexes[0]] || ' ';
-  neighbourCellsStates[1] = gridStr[neighboursIndexes[1]] || ' ';
-  neighbourCellsStates[2] = gridStr[neighboursIndexes[2]] || ' ';
-  neighbourCellsStates[3] = gridStr[neighboursIndexes[3]] || ' ';
+  neighbourCellsStates[0] = flatBoard[neighboursIndexes[0]] || ' ';
+  neighbourCellsStates[1] = flatBoard[neighboursIndexes[1]] || ' ';
+  neighbourCellsStates[2] = flatBoard[neighboursIndexes[2]] || ' ';
+  neighbourCellsStates[3] = flatBoard[neighboursIndexes[3]] || ' ';
 
   return neighbourCellsStates;
 }
 
-function checkIfCellIsIsolated(gridStr, cellIndex) {
-  const neighbours = getNeighbourCellsStates(gridStr, cellIndex).filter((neighbour) => neighbour !== ' ');
+function checkIfCellIsIsolated(flatBoard, cellIndex) {
+  const neighbours = getNeighbourCellsStates(flatBoard, cellIndex).filter((neighbour) => neighbour !== ' ');
   return neighbours.length < 2;
 }
 
-function checkIfDiceHasDamagePanelNeighbour(gridStr, cellIndex) {
-  const neighbours = getNeighbourCellsStates(gridStr, cellIndex);
+function checkIfDiceHasDamagePanelNeighbour(flatBoard, cellIndex) {
+  const neighbours = getNeighbourCellsStates(flatBoard, cellIndex);
   return neighbours.includes('P');
 }
 
-function checkIfDamagePanelHasDiceOrDamagePanelNeighbour(gridStr, cellIndex) {
-  const neighbours = getNeighbourCellsStates(gridStr, cellIndex);
+function checkIfDamagePanelHasDiceOrDamagePanelNeighbour(flatBoard, cellIndex) {
+  const neighbours = getNeighbourCellsStates(flatBoard, cellIndex);
   return neighbours.includes('D') || neighbours.includes('P');
 }
 
-function checkIfVerticalTeleporterHasHorizontalTeleporterNeighbour(gridStr, cellIndex) {
-  const neighbours = getNeighbourCellsStates(gridStr, cellIndex);
+function checkIfVerticalTeleporterHasHorizontalTeleporterNeighbour(flatBoard, cellIndex) {
+  const neighbours = getNeighbourCellsStates(flatBoard, cellIndex);
   return neighbours.includes('H');
 }
 
-function checkIfHorizontalTeleporterHasVerticalTeleporterNeighbour(gridStr, cellIndex) {
-  const neighbours = getNeighbourCellsStates(gridStr, cellIndex);
+function checkIfHorizontalTeleporterHasVerticalTeleporterNeighbour(flatBoard, cellIndex) {
+  const neighbours = getNeighbourCellsStates(flatBoard, cellIndex);
   return neighbours.includes('V');
 }
 
 function checkGridValidity() {
-  const gridStr = getGridStr();
+  const boardData = getBoardData();
+  const flatBoard = flattenBoardData(boardData);
   const messages = [];
 
-  if (!gridStr.includes('A')) {
+  if (!flatBoard.includes('A')) {
     messages.push('The grid must contain a start cell');
   }
 
-  if (!gridStr.includes('B') || !gridStr.includes('G') || !gridStr.includes('R') || !gridStr.includes('Y')) {
+  if (!flatBoard.includes('B') || !flatBoard.includes('G') || !flatBoard.includes('R') || !flatBoard.includes('Y')) {
     messages.push('The grid must contain all checkpoints');
   }
 
   for (let i = 0; i < gridSizeInCell ** 2; i += 1) {
-    if (gridStr[i] !== ' ' && checkIfCellIsIsolated(gridStr, i)) messages.push(`Cell ${i} is isolated`);
-    if (gridStr[i] === 'D' && !checkIfDiceHasDamagePanelNeighbour(gridStr, i)) messages.push(`Dice ${i} is not surrounded by at least one "damagePanel" cell`);
-    if (gridStr[i] === 'P' && !checkIfDamagePanelHasDiceOrDamagePanelNeighbour(gridStr, i)) messages.push(`"DamagePanel" cell ${i} is not surrounded by at least one dice or another "damagePanel" cell`);
-    if (gridStr[i] === 'V' && checkIfVerticalTeleporterHasHorizontalTeleporterNeighbour(gridStr, i)) messages.push(`Vertical teleporter ${i} is surrounded by a horizontal teleporter`);
-    if (gridStr[i] === 'H' && checkIfHorizontalTeleporterHasVerticalTeleporterNeighbour(gridStr, i)) messages.push(`Horizontal teleporter ${i} is surrounded by a vertical teleporter`);
+    if (flatBoard[i] !== ' ' && checkIfCellIsIsolated(flatBoard, i)) messages.push(`Cell ${i} is isolated`);
+    if (flatBoard[i] === 'D' && !checkIfDiceHasDamagePanelNeighbour(flatBoard, i)) messages.push(`Dice ${i} is not surrounded by at least one "damagePanel" cell`);
+    if (flatBoard[i] === 'P' && !checkIfDamagePanelHasDiceOrDamagePanelNeighbour(flatBoard, i)) messages.push(`"DamagePanel" cell ${i} is not surrounded by at least one dice or another "damagePanel" cell`);
+    if (flatBoard[i] === 'V' && checkIfVerticalTeleporterHasHorizontalTeleporterNeighbour(flatBoard, i)) messages.push(`Vertical teleporter ${i} is surrounded by a horizontal teleporter`);
+    if (flatBoard[i] === 'H' && checkIfHorizontalTeleporterHasVerticalTeleporterNeighbour(flatBoard, i)) messages.push(`Horizontal teleporter ${i} is surrounded by a vertical teleporter`);
   }
-
-  // Vérifier que les "dice" sont entourés d'au moins 1 case "damagePanel"
-
-  // Vérifier que les chemins de "damagePanel" contiennent tous un "dice"
-
-  // Vérifier que les "checkpoint" ne sont pas trop proches les uns des autres
-
-  // Vérifier qu'il n'y ait pas de cul-de-sac
 
   if (messages.length === 0) {
     alert('The grid is valid!');
@@ -315,49 +389,71 @@ function checkGridValidity() {
   return messages.length === 0;
 }
 
-function loadGridByString(gridStr) {
-  // remplir la grille avec les données
-  gridSizeInCell = Math.sqrt(gridStr.length);
-  gridSizeInput.value = gridSizeInCell;
-  document.documentElement.style.setProperty('--grid-size-in-cell', gridSizeInCell);
-  gridContainer.innerHTML = '';
-  generateGrid();
-  const gridItems = document.querySelectorAll('.grid-item');
-  for (let i = 0; i < gridItems.length; i += 1) {
-    gridItems[i].className = 'grid-item';
+function loadBoardData(boardData) {
+  // Reset the grid size if needed
+  if (boardData.length !== gridSizeInCell) {
+    gridSizeInCell = boardData.length;
+    gridSizeInput.value = gridSizeInCell;
+    document.documentElement.style.setProperty('--grid-size-in-cell', gridSizeInCell);
+    gridContainer.innerHTML = '';
+    generateGrid();
+  }
 
-    switch (gridStr[i]) {
-      case 'B': gridItems[i].classList.add('blueCheckpoint'); break;
-      case 'G': gridItems[i].classList.add('greenCheckpoint'); break;
-      case 'R': gridItems[i].classList.add('redCheckpoint'); break;
-      case 'Y': gridItems[i].classList.add('yellowCheckpoint'); break;
-      case 'D': gridItems[i].classList.add('dice'); break;
-      case 'P': gridItems[i].classList.add('damagePanel'); break;
-      case 'H': gridItems[i].classList.add('horizontalTeleporter'); break;
-      case 'V': gridItems[i].classList.add('verticalTeleporter'); break;
-      case 'O': gridItems[i].classList.add('bonusPanel'); break;
-      case 'C': gridItems[i].classList.add('commandPanel'); break;
-      case 'M': gridItems[i].classList.add('gpBoosterPanel'); break;
-      case 'S': gridItems[i].classList.add('specialPanel'); break;
-      case 'A': gridItems[i].classList.add('startPanel'); break;
-      default: break;
+  const gridItems = document.querySelectorAll('.grid-item');
+
+  // Reset all cells
+  usedCheckpoints.clear();
+  isStartPanelUsed = false;
+
+  // Load data into cells
+  for (let row = 0; row < boardData.length; row += 1) {
+    for (let col = 0; col < boardData[row].length; col += 1) {
+      const cellIndex = row * gridSizeInCell + col;
+
+      if (cellIndex >= gridItems.length) continue;
+
+      const cell = gridItems[cellIndex];
+      const cellData = boardData[row][col];
+
+      // Reset cell
+      cell.className = 'grid-item';
+
+      // Skip empty cells
+      if (!cellData || Object.keys(cellData).length === 0) continue;
+
+      // Apply the appropriate class based on the cell type
+      if (cellData.type === 'checkpoint') {
+        const checkpointClass = cellDataToClassMap.checkpoint[cellData.color];
+        cell.classList.add(checkpointClass);
+        usedCheckpoints.add(checkpointClass);
+      } else if (cellData.type === 'damage') {
+        if (cellData.hasDice) {
+          cell.classList.add('dice');
+        } else if (cellData.noBox) {
+          cell.classList.add('damagePanel');
+        }
+      } else if (cellData.type === 'teleporter') {
+        const teleporterClass = cellDataToClassMap.teleporter[cellData.direction];
+        cell.classList.add(teleporterClass);
+      } else if (cellData.type === 'start') {
+        cell.classList.add('startPanel');
+        isStartPanelUsed = true;
+      } else {
+        const className = cellDataToClassMap[cellData.type];
+        if (className) {
+          cell.classList.add(className);
+        }
+      }
     }
   }
 
-  if (gridStr.includes('B')) usedCheckpoints.add('blueCheckpoint');
-  if (gridStr.includes('G')) usedCheckpoints.add('greenCheckpoint');
-  if (gridStr.includes('R')) usedCheckpoints.add('redCheckpoint');
-  if (gridStr.includes('Y')) usedCheckpoints.add('yellowCheckpoint');
-  if (gridStr.includes('A')) isStartPanelUsed = true;
-
-  const checkpointOptions = Array.from(imageSelector.querySelectorAll('option')).filter((option) => option.value.includes('Checkpoint'));
+  // Disable used checkpoints in selector
   enableAllOptions();
-
   for (const checkpoint of usedCheckpoints) {
-    const option = checkpointOptions.find((opt) => opt.value === checkpoint.trim());
-    option.disabled = true;
+    imageSelector.querySelector(`[value='${checkpoint}']`).disabled = true;
   }
 
+  // Disable start panel if used
   if (isStartPanelUsed) {
     imageSelector.querySelector("[value='startPanel']").disabled = true;
   }
@@ -365,20 +461,22 @@ function loadGridByString(gridStr) {
 
 function loadBoard() {
   const boardName = savedBoardsList.value;
-  if (!boardName) return;
+  if (!boardName || boardName === 'default') return;
 
   const boards = JSON.parse(localStorage.getItem('boards')) || {};
-  const gridStr = boards[boardName];
-  if (!gridStr) {
+  const boardData = boards[boardName];
+  if (!boardData) {
     console.log(`No board found with the name ${boardName}`);
     return;
   }
 
-  loadGridByString(gridStr);
+  loadBoardData(boardData);
   savedBoardsList.value = 'default';
   updateBoardButtonsState();
+  resetHistory();
+  addHistoryState();
 
-  console.log(`The grid data has been successfully load from ${boardName}`);
+  console.log(`The grid data has been successfully loaded from ${boardName}`);
 }
 
 function deleteBoard() {
@@ -402,6 +500,7 @@ function shiftUp() {
     item.className = 'grid-item';
     gridContainer.appendChild(item);
   }
+  addHistoryState();
 }
 
 function shiftDown() {
@@ -413,64 +512,58 @@ function shiftDown() {
     item.className = 'grid-item';
     gridContainer.prepend(item);
   }
+  addHistoryState();
 }
 
 function shiftLeft() {
   const gridItems = document.querySelectorAll('.grid-item');
-  const item = gridItems[0];
-  item.className = 'grid-item';
-  const leftmostItems = Array.from(gridItems).filter((i, index) => (index + 1) % gridSizeInCell === 1);
-  leftmostItems.forEach(((itm) => { itm.className = 'grid-item'; }));
-  gridContainer.appendChild(item);
+  const leftmostItems = Array.from(gridItems).filter((_, index) => index % gridSizeInCell === 0);
+
+  for (let i = 0; i < leftmostItems.length; i += 1) {
+    const item = leftmostItems[i];
+    item.className = 'grid-item';
+    gridContainer.appendChild(item);
+  }
+  addHistoryState();
 }
 
 function shiftRight() {
   const gridItems = document.querySelectorAll('.grid-item');
-  const item = gridItems[gridItems.length - 1];
-  item.className = 'grid-item';
-  const rightmostItems = Array.from(gridItems).filter((i, index) => (index + 1) % gridSizeInCell === 0);
-  rightmostItems.forEach(((itm) => { itm.className = 'grid-item'; }));
-  gridContainer.prepend(item);
+  const rightmostItems = Array.from(gridItems).filter((_, index) => (index + 1) % gridSizeInCell === 0);
+
+  for (let i = 0; i < rightmostItems.length; i += 1) {
+    const item = rightmostItems[i];
+    item.className = 'grid-item';
+    gridContainer.prepend(item);
+  }
+  addHistoryState();
 }
 
 function onGridSizeChange(event) {
   const newGridSize = parseInt(event.target.value, 10);
-  const currentGridStr = getGridStr();
-  const oldGridSize = gridSizeInCell;
+  const currentBoardData = getBoardData();
 
   gridSizeInCell = newGridSize;
   document.documentElement.style.setProperty('--grid-size-in-cell', newGridSize);
   gridContainer.innerHTML = '';
   generateGrid();
 
-  const gridItems = document.querySelectorAll('.grid-item');
-  for (let row = 0; row < oldGridSize; row += 1) {
-    for (let col = 0; col < oldGridSize; col += 1) {
-      const oldIndex = row * oldGridSize + col;
-      const newIndex = row * newGridSize + col;
-      if (newIndex < gridItems.length) {
-        gridItems[newIndex].className = 'grid-item';
-
-        switch (currentGridStr[oldIndex]) {
-          case 'B': gridItems[newIndex].classList.add('blueCheckpoint'); break;
-          case 'G': gridItems[newIndex].classList.add('greenCheckpoint'); break;
-          case 'R': gridItems[newIndex].classList.add('redCheckpoint'); break;
-          case 'Y': gridItems[newIndex].classList.add('yellowCheckpoint'); break;
-          case 'D': gridItems[newIndex].classList.add('dice'); break;
-          case 'P': gridItems[newIndex].classList.add('damagePanel'); break;
-          case 'H': gridItems[newIndex].classList.add('horizontalTeleporter'); break;
-          case 'V': gridItems[newIndex].classList.add('verticalTeleporter'); break;
-          case 'O': gridItems[newIndex].classList.add('bonusPanel'); break;
-          case 'C': gridItems[newIndex].classList.add('commandPanel'); break;
-          case 'M': gridItems[newIndex].classList.add('gpBoosterPanel'); break;
-          case 'S': gridItems[newIndex].classList.add('specialPanel'); break;
-          case 'A': gridItems[newIndex].classList.add('startPanel'); break;
-          default: break;
-        }
+  // Create new board data with the new size
+  const newBoardData = [];
+  for (let row = 0; row < newGridSize; row += 1) {
+    const rowData = [];
+    for (let col = 0; col < newGridSize; col += 1) {
+      if (row < currentBoardData.length && col < currentBoardData[row].length) {
+        rowData.push(currentBoardData[row][col]);
+      } else {
+        rowData.push({});
       }
     }
+    newBoardData.push(rowData);
   }
-  enableAllOptions();
+
+  loadBoardData(newBoardData);
+  addHistoryState();
 }
 
 function onWindowQuit(event) {
@@ -498,17 +591,23 @@ function onDrag(event) {
 function onPreviousHistoryState() {
   if (historyStateIndex === 0) return;
   historyStateIndex -= 1;
+
   if (typeof history[historyStateIndex] === 'undefined') return;
+
+  const boardData = JSON.parse(history[historyStateIndex]);
   resetImageSelector();
-  loadGridByString(history[historyStateIndex]);
+  loadBoardData(boardData);
 }
 
 function onNextHistoryState() {
   if (historyStateIndex === history.length - 1) return;
   historyStateIndex += 1;
+
   if (typeof history[historyStateIndex] === 'undefined') return;
+
+  const boardData = JSON.parse(history[historyStateIndex]);
   resetImageSelector();
-  loadGridByString(history[historyStateIndex]);
+  loadBoardData(boardData);
 }
 
 function onKeyDown(event) {
@@ -525,22 +624,41 @@ function generateNewGameGrid() {
   });
 
   const gridItemsArray = Array.from(gridItems);
+
+  // Add start panel
   const randomIndex = Math.floor(Math.random() * gridItemsArray.length);
   gridItemsArray[randomIndex].classList.add('startPanel');
 
-  const randomCheckpointIndex = Math.floor(Math.random() * gridItemsArray.length);
-  gridItemsArray[randomCheckpointIndex].classList.add('blueCheckpoint');
+  // Add checkpoints
+  const checkpoints = ['blueCheckpoint', 'greenCheckpoint', 'redCheckpoint', 'yellowCheckpoint'];
 
-  const randomCheckpointIndex2 = Math.floor(Math.random() * gridItemsArray.length);
-  gridItemsArray[randomCheckpointIndex2].classList.add('greenCheckpoint');
+  for (const checkpoint of checkpoints) {
+    let randomCheckpointIndex;
+    do {
+      randomCheckpointIndex = Math.floor(Math.random() * gridItemsArray.length);
+    } while (
+      gridItemsArray[randomCheckpointIndex].classList.contains('startPanel')
+      || gridItemsArray[randomCheckpointIndex].classList.contains('blueCheckpoint')
+      || gridItemsArray[randomCheckpointIndex].classList.contains('greenCheckpoint')
+      || gridItemsArray[randomCheckpointIndex].classList.contains('redCheckpoint')
+      || gridItemsArray[randomCheckpointIndex].classList.contains('yellowCheckpoint')
+    );
 
-  const randomCheckpointIndex3 = Math.floor(Math.random() * gridItemsArray.length);
-  gridItemsArray[randomCheckpointIndex3].classList.add('redCheckpoint');
+    gridItemsArray[randomCheckpointIndex].classList.add(checkpoint);
+    usedCheckpoints.add(checkpoint);
+  }
 
-  const randomCheckpointIndex4 = Math.floor(Math.random() * gridItemsArray.length);
-  gridItemsArray[randomCheckpointIndex4].classList.add('yellowCheckpoint');
+  // Update the image selector
+  enableAllOptions();
+  for (const checkpoint of usedCheckpoints) {
+    imageSelector.querySelector(`[value='${checkpoint}']`).disabled = true;
+  }
+  imageSelector.querySelector("[value='startPanel']").disabled = true;
+
+  addHistoryState();
 }
 
+// Initialize the editor
 gridSizeInput.value = gridSizeInCell;
 gridSizeInput.addEventListener('change', onGridSizeChange);
 saveButton.addEventListener('click', saveGrid);

@@ -5,18 +5,6 @@ function createFace(type) {
   return face;
 }
 
-function findGrapheme(s) {
-  const re = /.[\u0300-\u036F]*/g;
-  let match;
-  const matches = [];
-  match = re.exec(s);
-  while (match) {
-    matches.push(match[0]);
-    match = re.exec(s);
-  }
-  return matches;
-}
-
 function setupCellInteractions() {
   const cells = document.querySelectorAll('.board .cell');
   const board = document.querySelector('.board');
@@ -128,152 +116,171 @@ function setupKeyboardNavigation() {
   });
 }
 
-function generateBoard(gridString) {
+function generateBoardFromJSON(boardData) {
   const board = document.querySelector('.board');
-  const rows = gridString.split(',');
 
-  const hasFirstNonEmpty = false;
+  // Get dimensions from the board data
+  const rows = boardData.length;
+  const cols = Math.max(...boardData.map((row) => row.length));
 
-  // Set the grid template based on the dimensions of the input
-  board.style.gridTemplateColumns = `repeat(${findGrapheme(rows[0].replace(/\n/g, ' ')).length}, 1fr)`;
-  board.style.gridTemplateRows = `repeat(${rows.length}, 1fr)`;
+  // Set the grid template based on the dimensions
+  board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  board.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
   // Clear existing board
   board.innerHTML = '';
 
   // Generate cells
-  rows.forEach((_row) => {
-    const row = findGrapheme(_row.replace(/\n/g, ' '));
-    row.forEach((char) => {
-      const cell = document.createElement('div');
-      cell.className = 'cell';
+  boardData.forEach((row, rowIndex) => {
+    row.forEach((cell, colIndex) => {
+      const cellElement = document.createElement('div');
+      cellElement.className = 'cell';
 
-      if (char.normalize('NFD').includes('\u0303')) {
-        cell.classList.add('no-box');
+      // Empty cell
+      if (!cell || Object.keys(cell).length === 0) {
+        cellElement.classList.add('empty');
       } else {
-        cell.classList.add('box');
+        // Apply cell type
+        if (cell.type) {
+          switch (cell.type) {
+            case 'checkpoint':
+              cellElement.classList.add(`t-${cell.color}-checkpoint`);
+              break;
+            case 'teleporter':
+              cellElement.classList.add(`t-${cell.direction}-teleporter`);
+              break;
+            case 'start':
+              cellElement.classList.add('t-start-panel');
+              cellElement.classList.add('selected'); // Auto-select start panel
+              break;
+            case 'special':
+              cellElement.classList.add('t-special-panel');
+              break;
+            case 'booster':
+              cellElement.classList.add('t-gp-booster-panel');
+              break;
+            case 'damage':
+              // Add additional properties
+              if (cell.hasDice) {
+                cellElement.classList.add('t-dice');
+              } else {
+                cellElement.classList.add('t-damage-panel');
+                cellElement.classList.add('no-box');
+              }
+              break;
+            case 'command':
+              // Handle colored command panels (1-16)
+              if (cell.color) {
+                cellElement.classList.add(`t-colored-command-panel-${cell.color}`);
+              } else {
+                cellElement.classList.add('t-command-panel');
+              }
+
+              if (cell.starred) {
+                cellElement.classList.add('starred');
+              }
+              break;
+            case 'bonus':
+              cellElement.classList.add('t-bonus-panel');
+              break;
+            default:
+              break;
+          }
+        }
+
+        // Create faces for 3D box
+        cellElement.appendChild(createFace('Xplus'));
+        cellElement.appendChild(createFace('Xminus'));
+        cellElement.appendChild(createFace('Yplus'));
+        cellElement.appendChild(createFace('Yminus'));
+        cellElement.appendChild(createFace('Zplus'));
+        cellElement.appendChild(createFace('Zminus'));
       }
 
-      switch (char.normalize('NFD').replace(/[\u0300-\u036f]/g, '')) {
-        case ' ': cell.classList.add('empty'); break;
-        case 'a': cell.classList.add('t-blue-checkpoint'); break;
-        case 'b': cell.classList.add('t-yellow-checkpoint'); break;
-        case 'c': cell.classList.add('t-red-checkpoint'); break;
-        case 'd': cell.classList.add('t-green-checkpoint'); break;
-        case 'e': cell.classList.add('t-vertical-teleporter'); break;
-        case 'f': cell.classList.add('t-start-panel'); break;
-        case 'g': cell.classList.add('t-special-panel'); break;
-        case 'h': cell.classList.add('t-horizontal-teleporter'); break;
-        case 'i': cell.classList.add('t-gp-booster-panel'); break;
-        case 'j': cell.classList.add('t-damage-panel'); break;
-        case 'k': cell.classList.add('t-command-panel'); break;
-        case 'l': cell.classList.add('t-bonus-panel'); break;
-        case 'm': cell.classList.add('t-colored-command-panel-1'); break;
-        case 'n': cell.classList.add('t-colored-command-panel-2'); break;
-        case 'o': cell.classList.add('t-colored-command-panel-3'); break;
-        case 'p': cell.classList.add('t-colored-command-panel-4'); break;
-        case 'q': cell.classList.add('t-colored-command-panel-5'); break;
-        case 'r': cell.classList.add('t-colored-command-panel-6'); break;
-        case 's': cell.classList.add('t-colored-command-panel-7'); break;
-        case 't': cell.classList.add('t-colored-command-panel-8'); break;
-        case 'u': cell.classList.add('t-colored-command-panel-9'); break;
-        case 'v': cell.classList.add('t-colored-command-panel-10'); break;
-        case 'w': cell.classList.add('t-colored-command-panel-11'); break;
-        case 'x': cell.classList.add('t-colored-command-panel-12'); break;
-        case 'y': cell.classList.add('t-colored-command-panel-13'); break;
-        case 'z': cell.classList.add('t-colored-command-panel-14'); break;
-        case 'A': cell.classList.add('t-colored-command-panel-15'); break;
-        case 'B': cell.classList.add('t-colored-command-panel-16'); break;
-        default: break;
-      }
-
-      if (cell.classList.contains('t-start-panel')) {
-        cell.classList.add('selected');
-      }
-
-      // Check for diacritics
-      if (char.normalize('NFD').includes('\u0300')) {
-        cell.classList.add('no-box');
-        cell.classList.remove('box');
-      }
-
-      if (char.normalize('NFD').includes('\u0301')) {
-        cell.classList.add('no-box');
-        cell.classList.remove('box');
-      }
-
-      if (char.normalize('NFD').includes('\u0323')) {
-        cell.classList.add('t-dice');
-        cell.classList.remove('no-box');
-      }
-
-      if (char.normalize('NFD').includes('\u0311')) {
-        cell.classList.add('starred');
-      }
-
-      // on ajoute 4 div pour créer les faces de la boite
-      if (char !== ' ') {
-        cell.appendChild(createFace('Xplus'));
-        cell.appendChild(createFace('Xminus'));
-        cell.appendChild(createFace('Yplus'));
-        cell.appendChild(createFace('Yminus'));
-        cell.appendChild(createFace('Zplus'));
-        cell.appendChild(createFace('Zminus'));
-      }
-
-      board.appendChild(cell);
+      board.appendChild(cellElement);
     });
   });
 
   // Setup cell selection and centering
   setupCellInteractions();
-
   setupKeyboardNavigation();
 }
 
-const view = document.getElementById('view');
+// Function to load a board from localStorage by name
+function loadBoardByName(boardName) {
+  if (!boardName) return false;
 
-/*
-a -> t-blue-checkpoint
-b -> t-yellow-checkpoint
-c -> t-red-checkpoint
-d -> t-green-checkpoint
-e -> t-vertical-teleporter
-f -> t-start-panel
-g -> t-special-panel
-h -> t-horizontal-teleporter
-i -> t-gp-booster-panel
-j -> t-damage-panel
-k -> t-command-panel
-l -> t-bonus-panel
-m -> t-colored-command-panel-1
-n -> t-colored-command-panel-2
-o -> t-colored-command-panel-3
-p -> t-colored-command-panel-4
-q -> t-colored-command-panel-5
-r -> t-colored-command-panel-6
-s -> t-colored-command-panel-7
-t -> t-colored-command-panel-8
-u -> t-colored-command-panel-9
-v -> t-colored-command-panel-10
-w -> t-colored-command-panel-11
-x -> t-colored-command-panel-12
-y -> t-colored-command-panel-13
-z -> t-colored-command-panel-14
-A -> t-colored-command-panel-15
-B -> t-colored-command-panel-16
+  try {
+    // Get all saved boards from localStorage
+    const boards = JSON.parse(localStorage.getItem('boards')) || {};
 
-https://www.lexilogos.com/keyboard/diacritics.htm
+    // Check if the requested board exists
+    if (!boards[boardName]) {
+      console.error(`Board "${boardName}" not found in localStorage`);
+      return false;
+    }
 
-tilde -> no-box
-dot below -> t-dice
-inverted breve -> starred
-*/
+    // Load the board
+    const boardData = boards[boardName];
 
-const keybladeBoard = '     j̃j̃j̣̃a      ,m̑nn̑  j̃  q      ,m nhhȏ  fqq̑ij̣̃gc,dmg  o  q   j̃ j̃,     bppp̑   j̃j̃j̃';
+    // Check if the board data is in the old string format and needs conversion
+    if (typeof boardData === 'string') {
+      console.warn(`Board "${boardName}" is in legacy string format. Consider updating to JSON format.`);
+      // You could add a conversion function here if needed
+      return false;
+    }
 
-generateBoard(keybladeBoard);
-setTimeout(() => {
-  const startCell = document.querySelector('.board .cell.t-start-panel');
-  if (startCell) startCell.click();
-}, 1);
+    // Generate the board from JSON data
+    generateBoardFromJSON(boardData);
+    console.log(`Successfully loaded board "${boardName}" from localStorage`);
+
+    return true;
+  } catch (error) {
+    console.error(`Error loading board "${boardName}":`, error);
+    return false;
+  }
+}
+
+// Function to parse URL parameters
+function getUrlParameter(name) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(name);
+}
+
+// Define the default keyblade board in JSON format
+const keybladeBoard = [
+  [{}, {}, {}, {}, {}, { type: 'damage', noBox: true }, { type: 'damage', noBox: true }, { type: 'damage', hasDice: true }, { type: 'checkpoint', color: 'blue' }, {}, {}, {}, {}, {}, {}],
+  [{ type: 'command', color: '1', starred: true }, { type: 'command', color: '2' }, { type: 'command', color: '2', starred: true }, {}, {}, { type: 'damage', noBox: true }, {}, {}, { type: 'command', color: '5' }, {}, {}, {}, {}, {}, {}],
+  [{ type: 'command', color: '1' }, {}, { type: 'command', color: '2' }, { type: 'teleporter', direction: 'horizontal' }, { type: 'teleporter', direction: 'horizontal' }, { type: 'command', color: '3' }, {}, {}, { type: 'start' }, { type: 'command', color: '5' }, { type: 'command', color: '5', starred: true }, { type: 'booster' }, { type: 'damage', hasDice: true }, { type: 'special' }, { type: 'checkpoint', color: 'red' }],
+  [{ type: 'checkpoint', color: 'green' }, { type: 'command', color: '1' }, { type: 'special' }, {}, {}, { type: 'command', color: '3' }, {}, {}, { type: 'command', color: '5' }, {}, {}, {}, { type: 'damage', noBox: true }, {}, { type: 'damage', noBox: true }],
+  [{}, {}, {}, {}, {}, { type: 'checkpoint', color: 'yellow' }, { type: 'command', color: '4' }, { type: 'command', color: '4' }, { type: 'command', color: '4', starred: true }, {}, {}, {}, { type: 'damage', noBox: true }, { type: 'damage', noBox: true }, { type: 'damage', noBox: true }],
+];
+
+// Initialize function that runs when the page loads
+function initBoard() {
+  // Check if a board name is specified in the URL
+  const boardNameFromUrl = getUrlParameter('board');
+
+  if (boardNameFromUrl) {
+    // Try to load the board from localStorage
+    const loadedSuccessfully = loadBoardByName(boardNameFromUrl);
+
+    // If the board was not found or loading failed, load the default board
+    if (!loadedSuccessfully) {
+      console.warn(`Could not load board "${boardNameFromUrl}", using default board instead`);
+      generateBoardFromJSON(keybladeBoard);
+    }
+  } else {
+    // No board specified in URL, load the default board
+    generateBoardFromJSON(keybladeBoard);
+  }
+
+  // Center on the start panel (with a slight delay to ensure DOM is ready)
+  setTimeout(() => {
+    const startCell = document.querySelector('.board .cell.t-start-panel');
+    if (startCell) startCell.click();
+  }, 100);
+}
+
+// Run the initialization when the page loads
+document.addEventListener('DOMContentLoaded', initBoard);
