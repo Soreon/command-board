@@ -110,8 +110,27 @@ body {
   height: calc(var(--cell-height));
   position: absolute;
   transform-style: preserve-3d;
-  transition: transform 0.5s ease;
 }
+
+.board .dice-container {
+  position: absolute;
+  transform-style: preserve-3d;
+  z-index: 100;
+  cursor: pointer;
+  transition: transform 0.3s ease-out;
+}
+
+.board .cell.t-dice.willRotateTowardsXMinus { transform-origin: 0 0 calc(-1* var(--cell-size));}
+.board .cell.t-dice.rotatingTowardsXMinus { transition: transform 0.3s ease; transform: translateX(var(--cell-size)) rotateY(-90deg);}
+
+.board .cell.t-dice.willRotateTowardsXPlus { transform-origin: calc(1* var(--cell-size)) calc(1* var(--cell-size)) calc(-1* var(--cell-size));}
+.board .cell.t-dice.rotatingTowardsXPlus { transition: transform 0.3s ease; transform: translateX(calc(-1* var(--cell-size))) rotateY(90deg);}
+
+.board .cell.t-dice.willRotateTowardsYMinus { transform-origin: calc(1* var(--cell-size)) 0 calc(-1* var(--cell-size));}
+.board .cell.t-dice.rotatingTowardsYMinus { transition: transform 0.3s ease; transform: translateY(calc(1* var(--cell-size))) rotateX(90deg);}
+
+.board .cell.t-dice.willRotateTowardsYPlus { transform-origin: 0 calc(1* var(--cell-size)) calc(-1* var(--cell-size));} 
+.board .cell.t-dice.rotatingTowardsYPlus { transition: transform 0.3s ease; transform: translateY(calc(-1* var(--cell-size))) rotateX(-90deg);}
 
 .board .cell.starred .Zplus {
   --cell-color: #f8b000;

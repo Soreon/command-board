@@ -125,8 +125,7 @@ function moveWithTeleportation(currentIndex, initialNewRow, initialNewCol, direc
 }
 
 // Add keyboard navigation function
-function setupKeyboardNavigation() {
-  // Get board dimensions
+function setupKeyboardNavigation() { // Get board dimensions
   const board = document.querySelector('.board');
   const totalCols = getComputedStyle(board).gridTemplateColumns.split(' ').length;
   const totalRows = getComputedStyle(board).gridTemplateRows.split(' ').length;
@@ -136,10 +135,6 @@ function setupKeyboardNavigation() {
     // Find currently selected cell
     const currentSelected = document.querySelector('.board .cell.selected');
     if (!currentSelected) return;
-
-    const dice = document.querySelector(`.t-dice[data-reference-element="${currentSelected.id}"]`);
-    const diceX = dice ? parseInt(dice.getAttribute('data-x') ?? 0, 10) : 0;
-    const diceY = dice ? parseInt(dice.getAttribute('data-y') ?? 0, 10) : 0;
 
     // Get all cells as an array to find current index
     const allCells = Array.from(document.querySelectorAll('.board .cell'));
@@ -152,6 +147,12 @@ function setupKeyboardNavigation() {
     let newRow = currentRow;
     let newCol = currentCol;
     let direction = '';
+
+    // Find the dice container that references the current cell, if any
+    const diceContainer = document.querySelector(`.dice-container[data-reference-element="${currentSelected.id}"]`);
+    const diceElement = diceContainer ? diceContainer.querySelector('.cell.t-dice') : null;
+    const diceX = diceContainer ? parseInt(diceContainer.getAttribute('data-x') || 0, 10) : 0;
+    const diceY = diceContainer ? parseInt(diceContainer.getAttribute('data-y') || 0, 10) : 0;
 
     // Determine which direction to move based on key press
     switch (event.key) {
@@ -172,35 +173,91 @@ function setupKeyboardNavigation() {
         direction = 'right';
         break;
       default:
-        return; // Exit if not an arrow key
+        return; // Exit if not a recognized key
     }
 
     // Move and handle teleporters
     moveWithTeleportation(currentIndex, newRow, newCol, direction, allCells, totalCols, totalRows);
 
-    if (dice) {
+    // Handle dice movement if it exists and we're moving to a damage panel
+    if (diceContainer) {
       const newlySelected = document.querySelector('.board .cell.selected');
       if (!newlySelected) return;
       if (newlySelected.id === currentSelected.id) return;
       if (!newlySelected.classList.contains('t-damage-panel')) return;
 
+      // Calculate new position for the dice
+      let newDiceX = diceX;
+      let newDiceY = diceY;
+
       switch (direction) {
         case 'up':
-          dice.setAttribute('data-y', diceY - 1);
+          newDiceY = diceY - 1;
           break;
         case 'down':
-          dice.setAttribute('data-y', diceY + 1);
+          newDiceY = diceY + 1;
           break;
         case 'left':
-          dice.setAttribute('data-x', diceX - 1);
+          newDiceX = diceX - 1;
           break;
         case 'right':
-          dice.setAttribute('data-x', diceX + 1);
+          newDiceX = diceX + 1;
           break;
         default:
-          return; // Exit if not an arrow key
+          break; // No valid direction
       }
-      dice.setAttribute('data-reference-element', newlySelected.id);
+
+      // Update dice container attributes
+      diceContainer.setAttribute('data-x', newDiceX);
+      diceContainer.setAttribute('data-y', newDiceY);
+      diceContainer.setAttribute('data-reference-element', newlySelected.id);
+
+      // Ajouter une petite animation pour le mouvement
+      diceContainer.classList.add('moving');
+
+      const removeAllRotationClasses = () => {
+        diceElement.classList.remove('rotatingTowardsXPlus');
+        diceElement.classList.remove('rotatingTowardsXMinus');
+        diceElement.classList.remove('rotatingTowardsYPlus');
+        diceElement.classList.remove('rotatingTowardsYMinus');
+      };
+
+      const removeAllWillRotateClasses = () => {
+        diceElement.classList.remove('willRotateTowardsXPlus');
+        diceElement.classList.remove('willRotateTowardsXMinus');
+        diceElement.classList.remove('willRotateTowardsYPlus');
+        diceElement.classList.remove('willRotateTowardsYMinus');
+      };
+
+      removeAllRotationClasses();
+      removeAllWillRotateClasses();
+
+      switch (direction) {
+        case 'up':
+          diceElement.classList.add('willRotateTowardsYMinus');
+          diceElement.classList.add('rotatingTowardsYMinus');
+          break;
+        case 'down':
+          diceElement.classList.add('willRotateTowardsYPlus');
+          diceElement.classList.add('rotatingTowardsYPlus');
+          break;
+        case 'left':
+          diceElement.classList.add('willRotateTowardsXMinus');
+          diceElement.classList.add('rotatingTowardsXMinus');
+          break;
+        case 'right':
+          diceElement.classList.add('willRotateTowardsXPlus');
+          diceElement.classList.add('rotatingTowardsXPlus');
+          break;
+        default:
+          break; // No valid direction
+      }
+
+      // Supprimer la classe après l'animation
+      setTimeout(() => {
+        diceContainer.classList.remove('moving');
+        removeAllRotationClasses();
+      }, 300);
     }
 
     // Prevent default arrow key behavior (like scrolling the page)
@@ -290,8 +347,12 @@ function createFaces(element) {
 }
 
 function createDice(dice) {
-  const diceElement = document.createElement('div');
+// Créer le conteneur du dé
+  const diceContainer = document.createElement('div');
+  diceContainer.classList.add('dice-container');
 
+  // Créer l'élément du dé lui-même
+  const diceElement = document.createElement('div');
   diceElement.classList.add('cell');
   diceElement.classList.add('t-dice');
 
@@ -303,11 +364,22 @@ function createDice(dice) {
   const cellCol = dice.col;
   const translateX = cellCol * (cellWidth + 10) + cellWidth / 2 - cellWidth / 2;
   const translateY = cellRow * (cellHeight + 10) + cellHeight / 2 - cellHeight / 2;
-  diceElement.setAttribute('data-reference-element', cellElement.id);
 
-  diceElement.style.transform = `translate(calc(${translateX}px + (attr(data-x type(<number>), 0) * (var(--cell-size) + var(--grid-gap)))), calc(${translateY}px + (attr(data-y type(<number>), 0) * (var(--cell-size) + var(--grid-gap)))))`;
+  // Attribuer les données au conteneur
+  diceContainer.setAttribute('data-reference-element', cellElement.id);
+  diceContainer.setAttribute('data-x', dice.x || 0);
+  diceContainer.setAttribute('data-y', dice.y || 0);
+
+  // Définir la transformation pour le conteneur
+  diceContainer.style.transform = `translate(calc(${translateX}px + (attr(data-x type(<number>), 0) * (var(--cell-size) + var(--grid-gap)))), calc(${translateY}px + (attr(data-y type(<number>), 0) * (var(--cell-size) + var(--grid-gap)))))`;
+
+  // Créer les faces du dé
   createFaces(diceElement);
-  return diceElement;
+
+  // Ajouter le dé au conteneur
+  diceContainer.appendChild(diceElement);
+
+  return diceContainer;
 }
 
 function generateBoardFromJSON(boardData) {
