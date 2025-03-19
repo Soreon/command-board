@@ -137,6 +137,10 @@ function setupKeyboardNavigation() {
     const currentSelected = document.querySelector('.board .cell.selected');
     if (!currentSelected) return;
 
+    const dice = document.querySelector(`.t-dice[data-reference-element="${currentSelected.id}"]`);
+    const diceX = dice ? parseInt(dice.getAttribute('data-x') ?? 0, 10) : 0;
+    const diceY = dice ? parseInt(dice.getAttribute('data-y') ?? 0, 10) : 0;
+
     // Get all cells as an array to find current index
     const allCells = Array.from(document.querySelectorAll('.board .cell'));
     const currentIndex = allCells.indexOf(currentSelected);
@@ -173,6 +177,31 @@ function setupKeyboardNavigation() {
 
     // Move and handle teleporters
     moveWithTeleportation(currentIndex, newRow, newCol, direction, allCells, totalCols, totalRows);
+
+    if (dice) {
+      const newlySelected = document.querySelector('.board .cell.selected');
+      if (!newlySelected) return;
+      if (newlySelected.id === currentSelected.id) return;
+      if (!newlySelected.classList.contains('t-damage-panel')) return;
+
+      switch (direction) {
+        case 'up':
+          dice.setAttribute('data-y', diceY - 1);
+          break;
+        case 'down':
+          dice.setAttribute('data-y', diceY + 1);
+          break;
+        case 'left':
+          dice.setAttribute('data-x', diceX - 1);
+          break;
+        case 'right':
+          dice.setAttribute('data-x', diceX + 1);
+          break;
+        default:
+          return; // Exit if not an arrow key
+      }
+      dice.setAttribute('data-reference-element', newlySelected.id);
+    }
 
     // Prevent default arrow key behavior (like scrolling the page)
     event.preventDefault();
@@ -274,8 +303,9 @@ function createDice(dice) {
   const cellCol = dice.col;
   const translateX = cellCol * (cellWidth + 10) + cellWidth / 2 - cellWidth / 2;
   const translateY = cellRow * (cellHeight + 10) + cellHeight / 2 - cellHeight / 2;
+  diceElement.setAttribute('data-reference-element', cellElement.id);
 
-  diceElement.style.transform = `translate(calc(${translateX}px + (0 * (var(--cell-size) + var(--grid-gap)))), calc(${translateY}px + (0 * (var(--cell-size) + var(--grid-gap)))))`;
+  diceElement.style.transform = `translate(calc(${translateX}px + (attr(data-x type(<number>), 0) * (var(--cell-size) + var(--grid-gap)))), calc(${translateY}px + (attr(data-y type(<number>), 0) * (var(--cell-size) + var(--grid-gap)))))`;
   createFaces(diceElement);
   return diceElement;
 }
@@ -300,6 +330,7 @@ function generateBoardFromJSON(boardData) {
   boardData.forEach((row, rowIndex) => {
     row.forEach((cell, colIndex) => {
       const cellElement = document.createElement('div');
+      cellElement.id = `cell-${rowIndex}-${colIndex}`;
       cellElement.className = 'cell';
 
       // Empty cell
