@@ -1,3 +1,6 @@
+const cameraTilt = 60; // In degrees
+let cameraPan = 0;
+
 function createFace(type) {
   const face = document.createElement('div');
   // face.innerText = type;
@@ -44,9 +47,81 @@ function setupCellInteractions() {
       const offsetY = (row * (cellHeight + 10) + cellHeight / 2);
 
       // transform: perspective(1000px) translateX(var(--translateX)) translateY(var(--translateY));
-      document.querySelector('#view').style.setProperty('transform', `perspective(1000px) rotateX(60deg) translateX(${-offsetX}px) translateY(${-offsetY}px)`);
+      document.querySelector('#view').style.setProperty('transform', `perspective(1000px) rotateX(${cameraTilt}deg) rotateZ(${cameraPan}deg) translateX(${-offsetX}px) translateY(${-offsetY}px)`);
     });
   });
+}
+
+// Function to update the camera view with current parameters
+function updateCameraView(offsetX, offsetY) {
+  document.querySelector('#view').style.setProperty('transform',
+    `perspective(1000px) rotateX(${cameraTilt}deg) rotateZ(${cameraPan}deg) translateX(${-offsetX}px) translateY(${-offsetY}px)`);
+}
+
+// Function to handle movement with teleportation
+function moveWithTeleportation(currentIndex, initialNewRow, initialNewCol, direction, allCells, totalCols, totalRows) {
+  let newRow = initialNewRow;
+  let newCol = initialNewCol;
+  let newIndex = newRow * totalCols + newCol;
+  let isTeleporter = false;
+  const maxIterations = 50; // Safety limit to prevent infinite loops
+  let iterations = 0;
+
+  do {
+    // Check if the new index is valid and not an empty cell
+    if (newIndex >= 0 && newIndex < allCells.length) {
+      const targetCell = allCells[newIndex];
+
+      // Check if it's a teleporter
+      isTeleporter = targetCell.classList.contains('t-horizontal-teleporter')
+                     || targetCell.classList.contains('t-vertical-teleporter');
+
+      // If it's not a teleporter or not a valid cell, break the loop
+      if (!isTeleporter || targetCell.classList.contains('empty')) {
+        // Only select if not empty
+        if (!targetCell.classList.contains('empty')) {
+          // Remove selection from current
+          const currentSelected = document.querySelector('.board .cell.selected');
+          if (currentSelected) {
+            currentSelected.classList.remove('selected');
+          }
+
+          // Add selection to new cell
+          targetCell.classList.add('selected');
+
+          // Simulate a click to center the view
+          targetCell.click();
+        }
+        break;
+      }
+
+      // It's a teleporter, so continue in the same direction
+      switch (direction) {
+        case 'up':
+          newRow = Math.max(0, newRow - 1);
+          break;
+        case 'down':
+          newRow = Math.min(totalRows - 1, newRow + 1);
+          break;
+        case 'left':
+          newCol = Math.max(0, newCol - 1);
+          break;
+        case 'right':
+          newCol = Math.min(totalCols - 1, newCol + 1);
+          break;
+        default:
+          break; // No valid direction
+      }
+
+      // Calculate new index
+      newIndex = newRow * totalCols + newCol;
+    } else {
+      // Out of bounds
+      break;
+    }
+
+    iterations += 1;
+  } while (isTeleporter && iterations < maxIterations);
 }
 
 // Add keyboard navigation function
@@ -72,48 +147,137 @@ function setupKeyboardNavigation() {
 
     let newRow = currentRow;
     let newCol = currentCol;
+    let direction = '';
 
     // Determine which direction to move based on key press
     switch (event.key) {
       case 'ArrowUp':
         newRow = Math.max(0, currentRow - 1);
+        direction = 'up';
         break;
       case 'ArrowDown':
         newRow = Math.min(totalRows - 1, currentRow + 1);
+        direction = 'down';
         break;
       case 'ArrowLeft':
         newCol = Math.max(0, currentCol - 1);
+        direction = 'left';
         break;
       case 'ArrowRight':
         newCol = Math.min(totalCols - 1, currentCol + 1);
+        direction = 'right';
         break;
       default:
         return; // Exit if not an arrow key
     }
 
-    // Calculate new index
-    const newIndex = newRow * totalCols + newCol;
-
-    // Check if the new index is valid and not an empty cell
-    if (newIndex >= 0 && newIndex < allCells.length) {
-      const targetCell = allCells[newIndex];
-
-      // Only select if not empty
-      if (!targetCell.classList.contains('empty')) {
-        // Remove selection from current
-        currentSelected.classList.remove('selected');
-
-        // Add selection to new cell
-        targetCell.classList.add('selected');
-
-        // Simulate a click to center the view
-        targetCell.click();
-      }
-    }
+    // Move and handle teleporters
+    moveWithTeleportation(currentIndex, newRow, newCol, direction, allCells, totalCols, totalRows);
 
     // Prevent default arrow key behavior (like scrolling the page)
     event.preventDefault();
   });
+}
+
+// Add mouse wheel rotation functionality
+function setupMouseWheelRotation() {
+  let isMiddleButtonPressed = false;
+  const view = document.querySelector('#view');
+
+  // Fonction utilitaire pour extraire les valeurs de translation de la propriété transform
+  function extractTranslateValues(transformString) {
+    const translateXMatch = transformString.match(/translateX\(([-\d.]+)px\)/);
+    const translateYMatch = transformString.match(/translateY\(([-\d.]+)px\)/);
+
+    return {
+      x: translateXMatch ? parseFloat(translateXMatch[1]) : 0,
+      y: translateYMatch ? parseFloat(translateYMatch[1]) : 0,
+    };
+  }
+
+  // Fonction pour mettre à jour la vue de la caméra avec les valeurs actuelles
+  function updateViewWithRotation() {
+    const currentTransform = view.style.transform || '';
+    const { x, y } = extractTranslateValues(currentTransform);
+
+    // Normaliser cameraPan entre 0 et 360 degrés
+    cameraPan = ((cameraPan % 360) + 360) % 360;
+
+    updateCameraView(x, y);
+  }
+
+  // Gestion du clic du bouton central de la souris
+  document.addEventListener('mousedown', (event) => {
+    if (event.button === 1) { // Bouton central (molette)
+      isMiddleButtonPressed = true;
+      event.preventDefault(); // Empêcher le comportement par défaut
+    }
+  });
+
+  // Gestion du relâchement du bouton
+  document.addEventListener('mouseup', (event) => {
+    if (event.button === 1) {
+      isMiddleButtonPressed = false;
+    }
+  });
+
+  // S'assurer que le drapeau est réinitialisé si la souris quitte la fenêtre
+  document.addEventListener('mouseleave', () => {
+    isMiddleButtonPressed = false;
+  });
+
+  // Gestion du mouvement de la souris pour la rotation
+  document.addEventListener('mousemove', (event) => {
+    if (!isMiddleButtonPressed) return;
+
+    // Calculer le changement de position de la souris
+    const deltaX = -event.movementX;
+
+    // Ajuster la rotation de la caméra avec une sensibilité réglable
+    const sensitivity = 0.5;
+    const maxDelta = 2; // Limite maximale pour éviter une rotation trop rapide
+    const clampedDeltaX = Math.max(-maxDelta, Math.min(deltaX, maxDelta));
+    cameraPan += clampedDeltaX * sensitivity;
+
+    // Mettre à jour l'affichage
+    const currentSelected = document.querySelector('.board .cell.selected');
+    if (currentSelected) {
+      // Si une cellule est sélectionnée, déclencher un clic pour mettre à jour la vue
+      currentSelected.click();
+    } else {
+      // Sinon, mettre à jour directement avec les valeurs de translation actuelles
+      updateViewWithRotation();
+    }
+  });
+}
+
+function createFaces(element) {
+  element.appendChild(createFace('Xplus'));
+  element.appendChild(createFace('Xminus'));
+  element.appendChild(createFace('Yplus'));
+  element.appendChild(createFace('Yminus'));
+  element.appendChild(createFace('Zplus'));
+  element.appendChild(createFace('Zminus'));
+}
+
+function createDice(dice) {
+  const diceElement = document.createElement('div');
+
+  diceElement.classList.add('cell');
+  diceElement.classList.add('t-dice');
+
+  const cellElement = dice.refElement;
+  const cellRect = cellElement.getBoundingClientRect();
+  const cellWidth = cellRect.width;
+  const cellHeight = cellRect.height;
+  const cellRow = dice.row;
+  const cellCol = dice.col;
+  const translateX = cellCol * (cellWidth + 10) + cellWidth / 2 - cellWidth / 2;
+  const translateY = cellRow * (cellHeight + 10) + cellHeight / 2 - cellHeight / 2;
+
+  diceElement.style.transform = `translate(calc(${translateX}px + (0 * (var(--cell-size) + var(--grid-gap)))), calc(${translateY}px + (0 * (var(--cell-size) + var(--grid-gap)))))`;
+  createFaces(diceElement);
+  return diceElement;
 }
 
 function generateBoardFromJSON(boardData) {
@@ -129,6 +293,8 @@ function generateBoardFromJSON(boardData) {
 
   // Clear existing board
   board.innerHTML = '';
+
+  const dices = [];
 
   // Generate cells
   boardData.forEach((row, rowIndex) => {
@@ -160,13 +326,8 @@ function generateBoardFromJSON(boardData) {
               cellElement.classList.add('t-gp-booster-panel');
               break;
             case 'damage':
-              // Add additional properties
-              if (cell.hasDice) {
-                cellElement.classList.add('t-dice');
-              } else {
-                cellElement.classList.add('t-damage-panel');
-                cellElement.classList.add('no-box');
-              }
+              cellElement.classList.add('t-damage-panel');
+              cellElement.classList.add('no-box');
               break;
             case 'command':
               // Handle colored command panels (1-16)
@@ -189,21 +350,27 @@ function generateBoardFromJSON(boardData) {
         }
 
         // Create faces for 3D box
-        cellElement.appendChild(createFace('Xplus'));
-        cellElement.appendChild(createFace('Xminus'));
-        cellElement.appendChild(createFace('Yplus'));
-        cellElement.appendChild(createFace('Yminus'));
-        cellElement.appendChild(createFace('Zplus'));
-        cellElement.appendChild(createFace('Zminus'));
+        createFaces(cellElement);
+
+        // Add additional properties
+        if (cell.hasDice) {
+          dices.push({ row: rowIndex, col: colIndex, refElement: cellElement });
+        }
       }
 
       board.appendChild(cellElement);
     });
   });
 
+  dices.forEach((dice) => {
+    const diceElement = createDice(dice);
+    board.appendChild(diceElement);
+  });
+
   // Setup cell selection and centering
   setupCellInteractions();
   setupKeyboardNavigation();
+  setupMouseWheelRotation();
 }
 
 // Function to load a board from localStorage by name

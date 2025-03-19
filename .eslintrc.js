@@ -13,6 +13,7 @@ module.exports = {
     'import/extensions': 0,
     'import/no-unresolved': 0,
     'guard-for-in': 0,
+    'no-continue': 0,
   },
   parser: '@babel/eslint-parser',
   parserOptions: {

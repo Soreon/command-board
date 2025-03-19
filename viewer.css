@@ -9,6 +9,7 @@ body {
 
 :root {
   --cell-size: 92.5px;
+  --grid-gap: 10px;
 }
 
 #container {
@@ -41,11 +42,10 @@ body {
   transform: translate(-50%, -50%);
   z-index: 1000;
 }
+
 .board {
   display: grid;
-  grid-gap: 10px;
-  width: 400px;
-  height: 400px;
+  grid-gap: var(--grid-gap);
   margin: 0 auto;
   transform-style: preserve-3d;
 }
@@ -102,7 +102,16 @@ body {
 .board .cell.t-colored-command-panel-14 { --cell-image: url('./images/coloredCommandPanel/14.png');--cell-color: #e1b8b0; }
 .board .cell.t-colored-command-panel-15 { --cell-image: url('./images/coloredCommandPanel/15.png');--cell-color: #e0bf93; }
 .board .cell.t-colored-command-panel-16 { --cell-image: url('./images/coloredCommandPanel/16.png');--cell-color: #d0ce6a; }
-.board .cell.t-dice { --cell-image: url('./images/dice.png'); }
+.board .cell.t-dice { 
+  --cell-image: url('./images/dice.png'); 
+  z-index: 1;
+  pointer-events: none;
+  width: calc(var(--cell-size));
+  height: calc(var(--cell-height));
+  position: absolute;
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease;
+}
 
 .board .cell.starred .Zplus {
   --cell-color: #f8b000;
@@ -229,8 +238,6 @@ body {
   transform: translateZ(calc(var(--cell-size) * -1));
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
-
-
 
 @keyframes borderExpand {
   0% {
